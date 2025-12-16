@@ -30,7 +30,7 @@ expr2 = k_on*μ[0,1] + b*k_p*μ[2,0] - k_off*μ[1,3] - k_on*μ[1,1]-γ_p*μ[1,1]
 sys_clean = bernoulli_moment_eqs(sys, binary_vars)
 expr1 = get_eqs(sys_clean)[3].rhs
 expr2 = k_on*μ[0,1] + b*k_p*μ[1,0] - k_off*μ[1,3] - k_on*μ[1,1]-γ_p*μ[1,1]
-expr2 = simplify(value.(expr2))
+#expr2 = simplify(value.(expr2))
 @test isequal(expr1, expr2)
 @test length(get_eqs(sys_clean)) == 6
 
