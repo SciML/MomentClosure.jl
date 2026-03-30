@@ -1,8 +1,8 @@
 # MomentClosure.jl
 
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://augustinas1.github.io/MomentClosure.jl/dev/)
-[![Build Status](https://github.com/augustinas1/MomentClosure.jl/workflows/CI/badge.svg)](https://github.com/augustinas1/MomentClosure.jl/actions)
-[![Coverage](https://codecov.io/gh/augustinas1/MomentClosure.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/augustinas1/MomentClosure.jl)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://sciml.github.io/MomentClosure.jl/dev/)
+[![Build Status](https://github.com/SciML/MomentClosure.jl/workflows/CI/badge.svg)](https://github.com/SciML/MomentClosure.jl/actions)
+[![Coverage](https://codecov.io/gh/SciML/MomentClosure.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/SciML/MomentClosure.jl)
 
 MomentClosure.jl is a tool to automatically obtain time-evolution equations of moments up to an arbitrary order for virtually any chemical reaction network or system of stochastic differential equations (SDEs), implementing a wide array of moment closure approximations commonly used in stochastic biochemical kinetics [[1]](#1). MomentClosure is (attempted to be) fairly well-integrated within the broader Julia ecosystem utilising a number of familiar packages:
 - MomentClosure can be immediately applied to reaction network models defined using [Catalyst](https://github.com/SciML/Catalyst.jl) and SDE systems built with [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl).
@@ -11,7 +11,7 @@ MomentClosure.jl is a tool to automatically obtain time-evolution equations of m
 
 ## Tutorials and documentation
 
-Please [see the documentation](https://augustinas1.github.io/MomentClosure.jl/dev/) for information on using the package, theory behind it and in-depth examples.
+Please [see the documentation](https://sciml.github.io/MomentClosure.jl/dev/) for information on using the package, theory behind it and in-depth examples.
 
 ## Features
 - Chemical reaction networks containing any number of molecular species and reactions with any type of *smooth* propensity functions are supported. Models can be defined using [Catalyst](https://github.com/SciML/Catalyst.jl/issues/22) as [`Catalyst.ReactionSystem`](https://docs.sciml.ai/Catalyst/stable/api/core_api/#Catalyst.ReactionSystem). Alternatively, built-in functionality (heavily based on Catalyst) can be used for model initialisation.

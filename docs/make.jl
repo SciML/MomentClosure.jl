@@ -4,14 +4,14 @@ using Documenter
 makedocs(;
     modules=[MomentClosure, ModelingToolkit, Symbolics],
     authors="Augustinas Sukys",
-    repo="https://github.com/augustinas1/MomentClosure.jl/blob/{commit}{path}#L{line}",
+    repo="https://github.com/SciML/MomentClosure.jl/blob/{commit}{path}#L{line}",
     sitename="MomentClosure.jl",
     doctest=false,
     warnonly = [:docs_block, :missing_docs, :cross_references],
     format=Documenter.HTML(;
         mathengine=Documenter.Writers.HTMLWriter.MathJax3(),
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://augustinas1.github.io/MomentClosure.jl",
+        canonical="https://sciml.github.io/MomentClosure.jl",
         assets=String[],
     ),
     pages=[
@@ -42,6 +42,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/augustinas1/MomentClosure.jl",
+    repo="github.com/SciML/MomentClosure.jl",
     devbranch="main"
 )
