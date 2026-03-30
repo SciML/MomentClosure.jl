@@ -1,9 +1,11 @@
-function generate_central_moment_eqs(drift_eqs::AbstractVector{Equation}, diff::AbstractArray, 
-                                      m_order::Int, q_order::Int, vars, name, ps, iv)
-    
+function generate_central_moment_eqs(
+        drift_eqs::AbstractVector{Equation}, diff::AbstractArray,
+        m_order::Int, q_order::Int, vars, name, ps, iv
+    )
+
     N = length(drift_eqs)
     drift = [e.rhs for e in drift_eqs]
-    diff_mat = diff*transpose(diff)
+    diff_mat = diff * transpose(diff)
     smap = Dict(Pair.(vars, 1:length(vars)))
 
     if iszero(q_order)
@@ -20,12 +22,12 @@ function generate_central_moment_eqs(drift_eqs::AbstractVector{Equation}, diff::
     iter_m = filter(x -> 1 < sum(x) <= m_order, iter_all)
     iter_q = filter(x -> m_order < sum(x) <= q_order, iter_all)
     iter_1 = filter(x -> sum(x) == 1, iter_all)
-    
+
     μ = define_μ(iter_1, iv)
     M = define_M(iter_all, iv)
 
     dict_vars_to_μ = Dict(zip(vars, values(μ)))
-    
+
     Df = Vector{Dict}(undef, N)
     derivs = Dict()
     for i in 1:N
@@ -36,13 +38,13 @@ function generate_central_moment_eqs(drift_eqs::AbstractVector{Equation}, diff::
                     derivs[iter] = expand_derivatives(Differential(vars[j])(derivs[iter]), true)
                 end
             end
-            derivs[iter] = substitute(derivs[iter], dict_vars_to_μ) 
+            derivs[iter] = substitute(derivs[iter], dict_vars_to_μ)
         end
         Df[i] = copy(derivs)
     end
 
     Dg = Matrix{Dict}(undef, N, N)
-    derivs = Dict() 
+    derivs = Dict()
     for i in 1:N
         for j in 1:N
             for iter in iter_all
@@ -57,46 +59,46 @@ function generate_central_moment_eqs(drift_eqs::AbstractVector{Equation}, diff::
             Dg[i, j] = copy(derivs)
         end
     end
-    
+
     eqs = Equation[]
     for i in 1:N
-        poly = sum( Df[i][j]*M[j]//fact(j) for j in iter_all )
+        poly = sum(Df[i][j] * M[j] // fact(j) for j in iter_all)
         push!(eqs, Differential(iv)(μ[iter_1[i]]) ~ expand(poly))
     end
 
     for iter in iter_m
-    
+
         iterq2 = filter(x -> sum(x) <= q_order - sum(iter) + 2, iter_all)
         iterq1 = filter(x -> sum(x) <= q_order - sum(iter) + 1, iterq2)
-        
+
         term1 = 0
         for i in 1:N
             iszero(iter[i]) ? continue :
-            gradf = iter[i]
+                gradf = iter[i]
             gradh = iter .- iter_1[i]
-            term1 += sum( gradf * Df[i][j] * M[gradh .+ j] // fact(j) for j in iterq1 )
-            term1 -= sum( gradf * Df[i][j] * M[gradh] * M[j] // fact(j) for j in iter_all ) 
+            term1 += sum(gradf * Df[i][j] * M[gradh .+ j] // fact(j) for j in iterq1)
+            term1 -= sum(gradf * Df[i][j] * M[gradh] * M[j] // fact(j) for j in iter_all)
         end
 
         term2 = 0
         for i in 1:N
             for j in 1:N
-                ( i == j && isone(iter[i]) ) || (iszero(iter[i]) || iszero(iter[j])) ? continue : 
-                hji = iter .- (iter_1[i] .+ iter_1[j])
-                hji_factor = i == j ? iter[i]*(iter[i]-1) : iter[i]*iter[j]
+                (i == j && isone(iter[i])) || (iszero(iter[i]) || iszero(iter[j])) ? continue :
+                    hji = iter .- (iter_1[i] .+ iter_1[j])
+                hji_factor = i == j ? iter[i] * (iter[i] - 1) : iter[i] * iter[j]
 
-                term2 += hji_factor * sum( Dg[i, j][k] * M[hji .+ k] // fact(k) for k in iterq2 )
+                term2 += hji_factor * sum(Dg[i, j][k] * M[hji .+ k] // fact(k) for k in iterq2)
             end
         end
 
-        push!(eqs, Differential(iv)(M[iter]) ~ expand(term1 + term2/2))
+        push!(eqs, Differential(iv)(M[iter]) ~ expand(term1 + term2 / 2))
 
     end
 
     odename = Symbol(name, "_central_moment_eqs_m", m_order, "_q", q_order)
-    odes = ODESystem(eqs, iv, extract_variables(eqs, μ, M), ps; name=odename)
+    odes = ODESystem(eqs, iv, extract_variables(eqs, μ, M), ps; name = odename)
 
-    CentralMomentEquations(odes, smap, μ, M, N, m_order, q_order, iter_all, iter_m, iter_q, iter_1)
+    return CentralMomentEquations(odes, smap, μ, M, N, m_order, q_order, iter_all, iter_m, iter_q, iter_1)
 end
 
 """
@@ -105,8 +107,10 @@ end
 Given an [`SDESystem`](https://mtk.sciml.ai/stable/systems/SDESystem/#ModelingToolkit.SDESystem), 
 return the [`CentralMomentEquations`](@ref) of the system generated up to `m_order`.
 """
-generate_central_moment_eqs(sys::SDESystem, m_order::Int, q_order::Int=0) = generate_central_moment_eqs(equations(sys), get_noiseeqs(sys), m_order, q_order, 
-                                                                                                        unknowns(sys), nameof(sys), parameters(sys), get_iv(sys))
+generate_central_moment_eqs(sys::SDESystem, m_order::Int, q_order::Int = 0) = generate_central_moment_eqs(
+    equations(sys), get_noiseeqs(sys), m_order, q_order,
+    unknowns(sys), nameof(sys), parameters(sys), get_iv(sys)
+)
 
 #=
 function generate_central_moment_eqs(drift_eqs::AbstractVector{Equation}, diff::AbstractArray{T}, 

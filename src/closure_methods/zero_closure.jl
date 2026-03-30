@@ -1,4 +1,4 @@
-function zero_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
+function zero_closure(sys::MomentEquations, binary_vars::Array{Int, 1} = Int[])
 
     closure = OrderedDict()
     closure_exp = OrderedDict()
@@ -6,7 +6,7 @@ function zero_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
     if !isempty(binary_vars)
         sys = bernoulli_moment_eqs(sys, binary_vars)
     end
-    
+
     if sys isa CentralMomentEquations
         for i in sys.iter_q
             closure[sys.M[i]] = 0
@@ -21,9 +21,9 @@ function zero_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
         sub = Dict()
 
         for i in unique_iter_q
-            μ[i] = -(raw_to_central[i]-μ[i])
-            closure[sys.μ[i]] = simplify(μ[i], expand=true)
-            μ[i] = simplify(substitute(μ[i], closure_exp), expand=true)
+            μ[i] = -(raw_to_central[i] - μ[i])
+            closure[sys.μ[i]] = simplify(μ[i], expand = true)
+            μ[i] = simplify(substitute(μ[i], closure_exp), expand = true)
             closure_exp[sys.μ[i]] = μ[i]
 
             perms = collect(multiset_permutations(i, length(i)))[2:end]
@@ -42,6 +42,6 @@ function zero_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
 
         end
     end
-    close_eqs(sys, closure_exp, closure, true)
+    return close_eqs(sys, closure_exp, closure, true)
 
 end

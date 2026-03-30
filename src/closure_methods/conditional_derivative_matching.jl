@@ -1,5 +1,7 @@
-function conditional_derivative_matching(sys::MomentEquations,
-                                         binary_vars::Array{Int,1}=Int[])
+function conditional_derivative_matching(
+        sys::MomentEquations,
+        binary_vars::Array{Int, 1} = Int[]
+    )
 
     if isempty(binary_vars)
         error("conditional closure does not work if there are no binary species")
@@ -27,7 +29,7 @@ function conditional_derivative_matching(sys::MomentEquations,
     iter_qs = vcat(sys.iter_1, sys.iter_m)
     sub = Dict()
 
-    for order in sys.m_order+1:sys.q_order
+    for order in (sys.m_order + 1):sys.q_order
 
         # building the closed moment expressions order by order (due to such hierarchical functional dependency)
         iter_order = filter(x -> sum(x) == order, sys.iter_q)
@@ -55,7 +57,7 @@ function conditional_derivative_matching(sys::MomentEquations,
                     end
                 end
                 bernoulli_iter = Tuple(bernoulli_iter)
-                r = iter.-bernoulli_iter
+                r = iter .- bernoulli_iter
 
                 # step 2
 
@@ -70,17 +72,21 @@ function conditional_derivative_matching(sys::MomentEquations,
                     end
                 end
 
-                γ = A\b
+                γ = A \ b
                 conditional_μ = prod([μ[iter_k[i]]^Int(γ[i]) for i in 1:length_k])
-                conditional_μ = μ[bernoulli_iter]*conditional_μ
-                conditional_μ = simplify(conditional_μ, expand=true)
+                conditional_μ = μ[bernoulli_iter] * conditional_μ
+                conditional_μ = simplify(conditional_μ, expand = true)
 
                 # step 3
                 iter_conditional = filter(x -> 0 < sum(x) <= sum(r), nonbernoulli_iters)
                 #conditional_sub = Dict([Pair(μ[iter], μ[iter.+bernoulli_iter]/μ[bernoulli_iter])
                 #                       for iter in iter_conditional])
-                conditional_sub = Dict([Pair(μ[iter], μ[iter.+bernoulli_iter]*μ[bernoulli_iter]^-1)
-                                       for iter in iter_conditional])
+                conditional_sub = Dict(
+                    [
+                        Pair(μ[iter], μ[iter .+ bernoulli_iter] * μ[bernoulli_iter]^-1)
+                            for iter in iter_conditional
+                    ]
+                )
                 conditional_μ = substitute(conditional_μ, conditional_sub)
                 conditional_μ = simplify(conditional_μ)
 
@@ -104,7 +110,7 @@ function conditional_derivative_matching(sys::MomentEquations,
                         A[i, j] = multi_binomial(iter_k[j], iter_k[i])
                     end
                 end
-                γ = A\b
+                γ = A \ b
                 moment = prod([μ[iter_k[i]]^Int(γ[i]) for i in 1:length_k])
                 moment = simplify(moment)
 
@@ -161,8 +167,8 @@ function conditional_derivative_matching(sys::MomentEquations,
         closure_exp = OrderedDict()
         # construct the corresponding truncated expressions of higher order
         # central moments from the obtained raw moment expressions
-        raw_to_central_exp = raw_to_central_moments(N, sys.q_order, μ=μ_M_exp, bernoulli=true, iv=iv)
-        raw_to_central = raw_to_central_moments(N, sys.q_order, μ=μ_M, bernoulli=true, iv=iv)
+        raw_to_central_exp = raw_to_central_moments(N, sys.q_order, μ = μ_M_exp, bernoulli = true, iv = iv)
+        raw_to_central = raw_to_central_moments(N, sys.q_order, μ = μ_M, bernoulli = true, iv = iv)
         for i in sys.iter_q
             closure_exp[sys.M[i]] = expand_mod(raw_to_central_exp[i])
             closure[sys.M[i]] = expand_mod(raw_to_central[i])
@@ -173,6 +179,6 @@ function conditional_derivative_matching(sys::MomentEquations,
         closure = closure_μ
     end
 
-    close_eqs(sys, closure_exp, closure, false)
+    return close_eqs(sys, closure_exp, closure, false)
 
 end

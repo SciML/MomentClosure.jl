@@ -2,25 +2,25 @@ using MomentClosure, ModelingToolkit
 using Documenter
 
 makedocs(;
-    modules=[MomentClosure, ModelingToolkit, Symbolics],
-    authors="Augustinas Sukys",
-    repo="https://github.com/SciML/MomentClosure.jl/blob/{commit}{path}#L{line}",
-    sitename="MomentClosure.jl",
-    doctest=false,
+    modules = [MomentClosure, ModelingToolkit, Symbolics],
+    authors = "Augustinas Sukys",
+    repo = "https://github.com/SciML/MomentClosure.jl/blob/{commit}{path}#L{line}",
+    sitename = "MomentClosure.jl",
+    doctest = false,
     warnonly = [:docs_block, :missing_docs, :cross_references],
-    format=Documenter.HTML(;
-        mathengine=Documenter.Writers.HTMLWriter.MathJax3(),
-        prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://sciml.github.io/MomentClosure.jl",
-        assets=String[],
+    format = Documenter.HTML(;
+        mathengine = Documenter.Writers.HTMLWriter.MathJax3(),
+        prettyurls = get(ENV, "CI", "false") == "true",
+        canonical = "https://sciml.github.io/MomentClosure.jl",
+        assets = String[],
     ),
-    pages=[
+    pages = [
         "Home" => "index.md",
         "Theory" => Any[
             "theory/moment_expansion_CME.md",
             "theory/moment_expansion_SDE.md",
             "theory/moment_closure_approximations.md",
-            "theory/linear_mapping_approximation.md"
+            "theory/linear_mapping_approximation.md",
         ],
         "Tutorials" => Any[
             "tutorials/using_momentclosure.md",
@@ -32,16 +32,16 @@ makedocs(;
             "tutorials/derivative_matching_example.md",
             "tutorials/SIR_example.md",
             "tutorials/LMA_example.md",
-            "tutorials/parameter_estimation_SDE.md"
+            "tutorials/parameter_estimation_SDE.md",
         ],
         "API" => Any[
-            "api/momentclosure_api.md"
-        ]
+            "api/momentclosure_api.md",
+        ],
     ],
 
 )
 
 deploydocs(;
-    repo="github.com/SciML/MomentClosure.jl",
-    devbranch="main"
+    repo = "github.com/SciML/MomentClosure.jl",
+    devbranch = "main"
 )

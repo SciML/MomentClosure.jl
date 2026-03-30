@@ -1,4 +1,4 @@
-function poisson_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
+function poisson_closure(sys::MomentEquations, binary_vars::Array{Int, 1} = Int[])
 
     closure = OrderedDict()
     closure_exp = OrderedDict()
@@ -22,7 +22,7 @@ function poisson_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
     sub = Dict()
 
     # construct the corresponding truncated expressions of higher order central moments
-    for order in sys.m_order+1:sys.q_order
+    for order in (sys.m_order + 1):sys.q_order
 
         iter_r = filter(x -> sum(x) == order, sys.iter_q)
         iter_qs = vcat(iter_qs, iter_r)
@@ -35,15 +35,15 @@ function poisson_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
             # mean value and mixed higher order cumulants to zero
             if sum(r) in r #diagonality condition
                 eᵣ = sys.iter_1[findfirst(!iszero, r)]
-                closed_moment = sys.μ[eᵣ]-(K[r]-moments[r])
+                closed_moment = sys.μ[eᵣ] - (K[r] - moments[r])
             else
-                closed_moment = -(K[r]-moments[r])
+                closed_moment = -(K[r] - moments[r])
             end
-            closed_moment = simplify(closed_moment, expand=true)
+            closed_moment = simplify(closed_moment, expand = true)
 
             closure[moments[r]] = closed_moment
             closure_exp[moments[r]] = substitute(closed_moment, closure_exp)
-            closure_exp[moments[r]] = simplify(closure_exp[moments[r]], expand=true)
+            closure_exp[moments[r]] = simplify(closure_exp[moments[r]], expand = true)
 
             perms = collect(multiset_permutations(r, length(r)))[2:end]
 
@@ -66,6 +66,6 @@ function poisson_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
 
     end
 
-    close_eqs(sys, closure_exp, closure, true)
+    return close_eqs(sys, closure_exp, closure, true)
 
 end

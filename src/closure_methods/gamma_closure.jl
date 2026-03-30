@@ -14,7 +14,7 @@ function gamma_factorial(a, i)
 
     product = 1.0
     for j in 1:i
-        product *= a+i-j
+        product *= a + i - j
     end
 
     return product
@@ -22,7 +22,7 @@ function gamma_factorial(a, i)
 end
 
 
-function gamma_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
+function gamma_closure(sys::MomentEquations, binary_vars::Array{Int, 1} = Int[])
 
     closure = OrderedDict() # leaving symbolic higher order terms
     closure_exp = OrderedDict() # expanding out all higher order terms fully
@@ -61,7 +61,7 @@ function gamma_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
     αs = scalarize(αs)
     x = scalarize(x)
     for i in 1:N
-        for j in i+1:N
+        for j in (i + 1):N
             αs[j, i] = αs[i, j]
         end
     end
@@ -82,7 +82,7 @@ function gamma_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
     β = Array{Any}(undef, N)
     for i in 1:N
         eᵢ = sys.iter_1[i]
-        for j in i+1:N
+        for j in (i + 1):N
             eⱼ = sys.iter_1[j]
             #symbolic_sub[αs[i, j]] = M[eᵢ .+ eⱼ] * μ[eᵢ] * μ[eⱼ] / M[2 .* eᵢ] / M[2 .* eⱼ]
             symbolic_sub[αs[i, j]] = M[eᵢ .+ eⱼ] * μ[eᵢ] * μ[eⱼ] * M[2 .* eᵢ]^-1 * M[2 .* eⱼ]^-1
@@ -101,7 +101,7 @@ function gamma_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
     unique_iter_q = unique(sort(i) for i in sys.iter_q)
     sub = Dict()
 
-    iter_2nd_order = filter(x-> sum(x) == 2, sys.iter_m)
+    iter_2nd_order = filter(x -> sum(x) == 2, sys.iter_m)
     # line below reproduces Lakatos et al. (2015) results - stronger assumptions
     #unique_iter_q = unique(sort(i) for i in vcat(sys.iter_m, sys.iter_q))
 
@@ -109,7 +109,7 @@ function gamma_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
 
         # construct iterator through the product of sums in the Eq. for raw moments
         for j in 1:N
-            iter_j = Iterators.filter(x -> sum(x)==iter[j], sys.iter_all)
+            iter_j = Iterators.filter(x -> sum(x) == iter[j], sys.iter_all)
             iters[j] = iter_j
         end
 
@@ -123,17 +123,17 @@ function gamma_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
             factor2 = 1.0
             for a in 1:N
                 factor2 *= gamma_factorial(α[a, a], k[a][a])
-                for b in a+1:N
-                    factor2 *= gamma_factorial(α[a, b], k[a][b]+k[b][a])
+                for b in (a + 1):N
+                    factor2 *= gamma_factorial(α[a, b], k[a][b] + k[b][a])
                 end
             end
-            suma += factor1*factor2
+            suma += factor1 * factor2
         end
 
-        suma = simplify(suma, expand=true)
+        suma = simplify(suma, expand = true)
         suma = substitute(suma, symbolic_sub)
         suma *= prod([β[j]^iter[j] for j in 1:N])
-        μ[iter] = simplify(suma, expand=true)
+        μ[iter] = simplify(suma, expand = true)
         closure[μ_symbolic[iter]] = μ[iter]
 
         # Note that joint moments of multivariate distributions are symmetric in the sense
@@ -171,23 +171,23 @@ function gamma_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
         closure_M = OrderedDict()
         for i in sys.iter_q
             closure_exp[M[i]] = raw_to_central[i]
-            closure_M[M[i]] = simplify(closure[μ_symbolic[i]]-(central_to_raw[i]-M[i]))
+            closure_M[M[i]] = simplify(closure[μ_symbolic[i]] - (central_to_raw[i] - M[i]))
         end
         closure = closure_M
     else
         raw_to_central = raw_to_central_moments(N, 2; iv)
-        M_to_μ = [M[i] => raw_to_central[i] for i in filter(x -> sum(x)==2, sys.iter_all)]
+        M_to_μ = [M[i] => raw_to_central[i] for i in filter(x -> sum(x) == 2, sys.iter_all)]
 
         # variance of bernoulli variable is expressed in terms of its mean
         #for ind in binary_vars
-    #        eᵢ = sys.iter_1[ind]
-    #        push!(M_to_μ, M[2 .* eᵢ] => μ[eᵢ] - μ[eᵢ]^2)
-    #    end
+        #        eᵢ = sys.iter_1[ind]
+        #        push!(M_to_μ, M[2 .* eᵢ] => μ[eᵢ] - μ[eᵢ]^2)
+        #    end
 
         for i in sys.iter_q
             closure_exp[sys.μ[i]] = substitute(μ[i], M_to_μ)
             expr = substitute(closure[sys.μ[i]], M_to_μ)
-            closure[sys.μ[i]] = simplify(expr, simplify_fractions=false)
+            closure[sys.μ[i]] = simplify(expr, simplify_fractions = false)
         end
     end
 
@@ -206,7 +206,7 @@ function gamma_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
                 closed_rhs = substitute(eq.rhs, closure_exp)
                 closed_rhs = expand(closed_rhs)
                 closed_rhs = substitute(closed_rhs, iter_sub)
-                closed_rhs = simplify(closed_rhs, simplify_fractions=false)
+                closed_rhs = simplify(closed_rhs, simplify_fractions = false)
 
                 push!(closed_eqs, Equation(eq.lhs, closed_rhs))
 
@@ -232,7 +232,7 @@ function gamma_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
         end
 
         odename = Symbol(nameof(sys), "_gamma_closure")
-        odes = ODESystem(closed_eqs, get_iv(sys), vars, get_ps(sys); name=odename)
+        odes = ODESystem(closed_eqs, get_iv(sys), vars, get_ps(sys); name = odename)
 
         return ClosedMomentEquations(odes, closure, sys)
 

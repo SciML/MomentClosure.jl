@@ -39,8 +39,10 @@ Notes:
   in the reaction network). By default, this is consistent with the internal system ordering
   accessible with [`Catalyst.speciesmap`](https://docs.sciml.ai/Catalyst/stable/api/core_api/#Catalyst.speciesmap).
 """
-function generate_central_moment_eqs(rn::ReactionSystem, m_order::Int, q_order::Int=0;
-                                     langevin::Bool=false, combinatoric_ratelaws::Bool=true, smap=speciesmap(rn))
+function generate_central_moment_eqs(
+        rn::ReactionSystem, m_order::Int, q_order::Int = 0;
+        langevin::Bool = false, combinatoric_ratelaws::Bool = true, smap = speciesmap(rn)
+    )
 
     N = numspecies(rn)   # no. of molecular species in the network
     R = numreactions(rn) # no. of reactions in the network
@@ -48,13 +50,15 @@ function generate_central_moment_eqs(rn::ReactionSystem, m_order::Int, q_order::
     a = propensities(rn; combinatoric_ratelaws) # propensity functions of all reactions in the network
     S = get_stoichiometry(rn, smap) # net stoichiometric matrix
 
-    if langevin 
-        drift = S*a
-        diff = Num[S[i,k] * a[k]^(1//2) for i in 1:N, k in eachindex(a)]
-        
-        return generate_central_moment_eqs(Equation[Differential(iv)(s) ~ d for (s, d) in zip(species(rn), drift)], 
-                                           diff, m_order, q_order, unknowns(rn), nameof(rn), parameters(rn), iv)
-    
+    if langevin
+        drift = S * a
+        diff = Num[S[i, k] * a[k]^(1 // 2) for i in 1:N, k in eachindex(a)]
+
+        return generate_central_moment_eqs(
+            Equation[Differential(iv)(s) ~ d for (s, d) in zip(species(rn), drift)],
+            diff, m_order, q_order, unknowns(rn), nameof(rn), parameters(rn), iv
+        )
+
     end
 
     # quite messy way to check whether all propensity functions are polynomials
@@ -113,15 +117,15 @@ function generate_central_moment_eqs(rn::ReactionSystem, m_order::Int, q_order::
     for r in 1:R
         suma = 0
         for j in iter_all
-            suma = suma + Da[r][j]*M[j]*1//fact(j)
+            suma = suma + Da[r][j] * M[j] * 1 // fact(j)
             # here // gives fractions (otherwise it's a float number)
         end
 
         for i in 1:N
             if r == 1
-                push!(du, S[i,r]*suma)
+                push!(du, S[i, r] * suma)
             else
-                du[i] = S[i, r]*suma + du[i]
+                du[i] = S[i, r] * suma + du[i]
             end
             du[i] = expand_expr(du[i])
         end
@@ -133,24 +137,24 @@ function generate_central_moment_eqs(rn::ReactionSystem, m_order::Int, q_order::
     for i in iter_m
         dM[i] = 0
         for r in 1:R
-            iter_j = filter(x -> all(x .<= i) && sum(x) <= sum(i)-1, iter_all)
+            iter_j = filter(x -> all(x .<= i) && sum(x) <= sum(i) - 1, iter_all)
             for j in iter_j
                 factor_j = 1.0
                 for k in 1:N
-                    factor_j *= expected_coeff(S[k, r], i[k]-j[k]) * binomial(i[k], j[k])
+                    factor_j *= expected_coeff(S[k, r], i[k] - j[k]) * binomial(i[k], j[k])
                 end
                 # m+1 -> MA_order
-                iter_k = filter(x -> sum(x) <= q_order-sum(j), iter_all)
+                iter_k = filter(x -> sum(x) <= q_order - sum(j), iter_all)
                 suma = 0.0
                 for k in iter_k
-                    suma += Da[r][k]*M[j.+k]*1//fact(k)
+                    suma += Da[r][k] * M[j .+ k] * 1 // fact(k)
                 end
-                dM[i] += factor_j*suma
+                dM[i] += factor_j * suma
             end
         end
         for j in 1:N
             if i[j] > 0
-                dM[i] -= i[j]*du[j]*M[i.-iter_1[j]]
+                dM[i] -= i[j] * du[j] * M[i .- iter_1[j]]
             end
         end
         dM[i] = expand_expr(dM[i])
@@ -167,9 +171,9 @@ function generate_central_moment_eqs(rn::ReactionSystem, m_order::Int, q_order::
 
     vars = extract_variables(eqs, μ, M)
     odename = Symbol(nameof(rn), "_central_moment_eqs_m", m_order, "_q", q_order)
-    odes = ODESystem(eqs, iv, vars, get_ps(rn); name=odename)
+    odes = ODESystem(eqs, iv, vars, get_ps(rn); name = odename)
 
-    CentralMomentEquations(
+    return CentralMomentEquations(
         odes,
         smap,
         μ,

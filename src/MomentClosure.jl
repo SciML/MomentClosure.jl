@@ -9,12 +9,12 @@ using SciMLBase: NullParameters, ODEProblem
 using Random
 using Distributions: Geometric
 
-using Symbolics: value, var_from_nested_derivative, map_subscripts, hessian, 
-				 gradient, setmetadata, scalarize
+using Symbolics: value, var_from_nested_derivative, map_subscripts, hessian,
+    gradient, setmetadata, scalarize
 using SymbolicUtils.Rewriters: Chain, PassThrough, Prewalk, Fixpoint
-using SymbolicUtils: BasicSymbolic, Real, Term, FnType, expand, simplify, 
-					 operation, arguments, @rule, @acrule, isnotflat, flatten_term,
-					 istree, isterm, ismul, isadd, ispow, isdiv
+using SymbolicUtils: BasicSymbolic, Real, Term, FnType, expand, simplify,
+    operation, arguments, @rule, @acrule, isnotflat, flatten_term,
+    istree, isterm, ismul, isadd, ispow, isdiv
 
 using DataStructures: OrderedDict
 using TupleTools: sort
@@ -25,10 +25,10 @@ using Latexify
 using DocStringExtensions
 
 export generate_central_moment_eqs, generate_raw_moment_eqs, bernoulli_moment_eqs,
-       propensities, get_stoichiometry, moment_closure, deterministic_IC,
-	   get_raw_moments, get_central_moments, get_cumulants, get_moments_FSP,
-	   linear_mapping_approximation, ODEProblem,
-       get_odes, get_closure, get_iv, get_eqs, unknowns, get_ps, speciesmap
+    propensities, get_stoichiometry, moment_closure, deterministic_IC,
+    get_raw_moments, get_central_moments, get_cumulants, get_moments_FSP,
+    linear_mapping_approximation, ODEProblem,
+    get_odes, get_closure, get_iv, get_eqs, unknowns, get_ps, speciesmap
 
 include("reaction_systems.jl")
 include("moment_equations.jl")

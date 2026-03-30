@@ -1,5 +1,7 @@
-function close_eqs(sys::MomentEquations, closure_exp::OrderedDict,
-                   closure::OrderedDict, polynorm::Bool)
+function close_eqs(
+        sys::MomentEquations, closure_exp::OrderedDict,
+        closure::OrderedDict, polynorm::Bool
+    )
 
     closed_eqs = Equation[]
     for eq in get_eqs(sys.odes)
@@ -15,13 +17,13 @@ function close_eqs(sys::MomentEquations, closure_exp::OrderedDict,
 
     iv = get_iv(sys)
     ps = get_ps(sys)
-    
-    vars = unknowns(sys)[1:(length(sys.iter_1)+length(sys.iter_m))]
+
+    vars = unknowns(sys)[1:(length(sys.iter_1) + length(sys.iter_m))]
 
     odename = Symbol(nameof(sys), "_closed")
-    odes = ODESystem(closed_eqs, iv, vars, ps; name=odename)
+    odes = ODESystem(closed_eqs, iv, vars, ps; name = odename)
 
-    ClosedMomentEquations(odes, closure, sys)
+    return ClosedMomentEquations(odes, closure, sys)
 
 end
 
@@ -49,9 +51,9 @@ The supported `closure` options are:
   `binary vars` can also be specified for other closures, although the resulting closure will be conceptually
   different from the original (but not necessarily worse).
 """
-function moment_closure(sys::MomentEquations, closure::String, binary_vars::Array{Int,1}=Int[])
+function moment_closure(sys::MomentEquations, closure::String, binary_vars::Array{Int, 1} = Int[])
 
-    if closure == "zero"
+    return if closure == "zero"
         zero_closure(sys, binary_vars)
     elseif closure == "normal"
         normal_closure(sys, binary_vars)
@@ -68,7 +70,7 @@ function moment_closure(sys::MomentEquations, closure::String, binary_vars::Arra
     elseif closure == "conditional derivative matching"
         conditional_derivative_matching(sys, binary_vars)
     else
-        error(closure*" closure does not exist")
+        error(closure * " closure does not exist")
     end
 
 end

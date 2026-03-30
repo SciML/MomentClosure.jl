@@ -23,7 +23,7 @@ return a Dictionary of raw moments computed up to the specified `order` at each 
   (https://diffeq.sciml.ai/stable/features/ensemble/#Analyzing-an-Ensemble-Experiment)
   for more details.
 """
-function get_raw_moments(sol::EnsembleSolution, order::Int; naive::Bool=true, b::Int=2)
+function get_raw_moments(sol::EnsembleSolution, order::Int; naive::Bool = true, b::Int = 2)
 
     # TODO: improve performance (it's rather poor now)
     # TODO: consider dropping the Dict and using DiffEqArrays
@@ -42,7 +42,7 @@ function get_raw_moments(sol::EnsembleSolution, order::Int; naive::Bool=true, b:
     iter_order = [filter(x -> sum(x) == m, iter_all) for m in 1:order]
     iter_μ = vcat(iter_order...)
 
-    keys = Dict([iter => vcat([fill(i, n) for (i,n) in enumerate(iter)]...) for iter in iter_μ])
+    keys = Dict([iter => vcat([fill(i, n) for (i, n) in enumerate(iter)]...) for iter in iter_μ])
     μ = Dict([iter => Array{Float64}(undef, no_t_pts) for iter in iter_μ])
 
     for t_pt in 1:no_t_pts
@@ -59,7 +59,7 @@ function get_raw_moments(sol::EnsembleSolution, order::Int; naive::Bool=true, b:
 
     end
 
-    μ
+    return μ
 
 end
 
@@ -71,7 +71,7 @@ Given an `EnsembleSolution` of [DifferentialEquations ensemble simulation]
 return a Dictionary of central moment estimates computed up to the specified `order`
 at each time step. See the notes of [`get_raw_moments`](@ref) function for more information.
 """
-function get_central_moments(sol::EnsembleSolution, order::Int; naive::Bool=true, b::Int=2)
+function get_central_moments(sol::EnsembleSolution, order::Int; naive::Bool = true, b::Int = 2)
 
     if naive
         f_alg = naivemoment
@@ -84,14 +84,14 @@ function get_central_moments(sol::EnsembleSolution, order::Int; naive::Bool=true
     N = length(sol.u[1].u[1])
 
     iter_all = construct_iter_all(N, order)
-    iter_order = [filter(x-> sum(x) == m, iter_all) for m in 1:order]
+    iter_order = [filter(x -> sum(x) == m, iter_all) for m in 1:order]
     iter_M = filter(x -> sum(x) > 1, iter_all)
 
-    keys = Dict([iter => vcat([fill(i, n) for (i,n) in enumerate(iter)]...) for iter in iter_all])
+    keys = Dict([iter => vcat([fill(i, n) for (i, n) in enumerate(iter)]...) for iter in iter_all])
     M = Dict([iter => Array{Float64}(undef, no_t_pts) for iter in iter_M])
 
     μ = Dict()
-    μ[Tuple(fill(0, N))] = 1.
+    μ[Tuple(fill(0, N))] = 1.0
 
     for t_pt in 1:no_t_pts
         tslice = componentwise_vectors_timestep(sol, t_pt)
@@ -109,7 +109,7 @@ function get_central_moments(sol::EnsembleSolution, order::Int; naive::Bool=true
         end
     end
 
-    M
+    return M
 
 end
 
@@ -121,16 +121,16 @@ Given an `EnsembleSolution` of [DifferentialEquations ensemble simulation]
 return a Dictionary of cumulant estimates computed up to the specified `order`
 at each time step. See the notes of [`get_raw_moments`](@ref) function for more information.
 """
-function get_cumulants(sol::EnsembleSolution, order::Int; naive::Bool=true, b::Int=2)
+function get_cumulants(sol::EnsembleSolution, order::Int; naive::Bool = true, b::Int = 2)
 
     no_t_pts = length(sol.u[1])
     N = length(sol.u[1].u[1])
 
     iter_all = construct_iter_all(N, order)
-    iter_order = [filter(x-> sum(x) == m, iter_all) for m in 1:order]
+    iter_order = [filter(x -> sum(x) == m, iter_all) for m in 1:order]
     iter_κ = vcat(iter_order...)
 
-    keys = Dict([iter => vcat([fill(i, n) for (i,n) in enumerate(iter)]...) for iter in iter_κ])
+    keys = Dict([iter => vcat([fill(i, n) for (i, n) in enumerate(iter)]...) for iter in iter_κ])
     κ = Dict([iter => Array{Float64}(undef, no_t_pts) for iter in iter_κ])
 
     if naive
@@ -171,7 +171,7 @@ function get_cumulants(sol::EnsembleSolution, order::Int; naive::Bool=true, b::I
 
     end
 
-    κ
+    return κ
 
 end
 
@@ -192,32 +192,32 @@ Here, `moment_type` specifies the type of moments to be computed: available opti
 """
 function get_moments_FSP(sol::ODESolution, order::Int, moment_type::String)
 
-    @assert any(moment_type .== ["raw", "central", "cumulant"]) "Moment type "*moment_type*" does not exist"
+    @assert any(moment_type .== ["raw", "central", "cumulant"]) "Moment type " * moment_type * " does not exist"
 
-    state_space = size(sol)[1:end-1]
+    state_space = size(sol)[1:(end - 1)]
     N = length(state_space)
     no_t_pts = length(sol.u)
 
     iter_moments = construct_iter_all(N, order)[2:end]
     moments = Dict([iter => Array{Float64}(undef, no_t_pts) for iter in iter_moments])
 
-    iter_state = Iterators.product((0:i-1 for i in state_space)...)
+    iter_state = Iterators.product((0:(i - 1) for i in state_space)...)
 
     if moment_type == "raw"
         for t_pt in 1:no_t_pts
             tslice = sol[t_pt]
             for μ_ind in iter_moments
-                moments[μ_ind][t_pt] = sum(prod(n_state.^μ_ind) * tslice[(n_state.+1)...] for n_state in iter_state)
+                moments[μ_ind][t_pt] = sum(prod(n_state .^ μ_ind) * tslice[(n_state .+ 1)...] for n_state in iter_state)
             end
         end
     else
         μ = Dict{NTuple{N, Float64}}()
-        μ[Tuple(zeros(N))] = 1.
+        μ[Tuple(zeros(N))] = 1.0
 
         for t_pt in 1:no_t_pts
             tslice = sol[t_pt]
             for μ_ind in iter_moments
-                μ[μ_ind] = sum(prod(n_state.^μ_ind) * tslice[(n_state.+1)...] for n_state in iter_state)
+                μ[μ_ind] = sum(prod(n_state .^ μ_ind) * tslice[(n_state .+ 1)...] for n_state in iter_state)
             end
 
             if moment_type == "central"
@@ -232,7 +232,7 @@ function get_moments_FSP(sol::ODESolution, order::Int, moment_type::String)
         end
     end
 
-    moments
+    return moments
 
 end
 
@@ -264,19 +264,19 @@ function deterministic_IC(u0map::AbstractArray{<:Pair}, sys::MomentEquations)
     species_u0 = getname.(first.(u0map))
     inds_u0 = sortperm(species_u0)
     species_u0 = species_u0[inds_u0]
-    
+
     smap = collect(speciesmap(sys))
     species_sys = getname.(first.(smap))
     inds_sys = sortperm(species_sys)
     species_sys = species_sys[inds_sys]
-    
+
     @assert isequal(species_u0, species_sys) error("The passed IC vector is inconsistent with the species in the system")
 
     vals_u0 = last.(u0map)[inds_u0]
     idx_sys = last.(smap)[inds_sys]
     u0 = vals_u0[sortperm(idx_sys)]
 
-    deterministic_IC(u0, sys)
+    return deterministic_IC(u0, sys)
 end
 
 function deterministic_IC(u0::AbstractVector{<:Real}, eqs::MomentEquations)
@@ -290,13 +290,13 @@ function deterministic_IC(u0::AbstractVector{<:Real}, eqs::MomentEquations)
     vars = unknowns(eqs)
     no_states = length(vars)
     if sys isa CentralMomentEquations
-        moment_map = [vars[i] => 0.0 for i in N+1:no_states]
+        moment_map = [vars[i] => 0.0 for i in (N + 1):no_states]
     else
         reverse_μ = Dict(μ => iter for (iter, μ) in sys.μ)
-        moment_map = [vars[i] => prod(u0 .^ reverse_μ[vars[i]]) for i in N+1:no_states]
+        moment_map = [vars[i] => prod(u0 .^ reverse_μ[vars[i]]) for i in (N + 1):no_states]
     end
 
-    vcat(μ_map, moment_map)
+    return vcat(μ_map, moment_map)
 
 end
 
@@ -315,18 +315,18 @@ function format_moment_eqs(eqs::MomentEquations)
 
     odes = get_eqs(eqs)
     vars = unknowns(eqs)
-    exprs  = []
+    exprs = []
 
     for i in 1:size(odes)[1]
         key = vars[i]
         eq = odes[i].rhs
         eq = expand_mod(eq)
-        expr = "d"*string(key)*"/dt = "*string(eq)
-        expr = replace(expr, "(t)"=>"")
-        expr = replace(expr, ".0"=>"")
+        expr = "d" * string(key) * "/dt = " * string(eq)
+        expr = replace(expr, "(t)" => "")
+        expr = replace(expr, ".0" => "")
         push!(exprs, expr)
     end
-    exprs
+    return exprs
 
 end
 
@@ -343,7 +343,7 @@ be visualised using [Latexify](https://github.com/korsbo/Latexify.jl).
   or only those encountered in the moment ODEs specifically (`include_all=false`,
   the default option) will be returned.
 """
-function format_closure(eqs::ClosedMomentEquations; format_all::Bool=false)
+function format_closure(eqs::ClosedMomentEquations; format_all::Bool = false)
     closure = get_closure(eqs)
     exprs = []
 
@@ -356,16 +356,16 @@ function format_closure(eqs::ClosedMomentEquations; format_all::Bool=false)
     for i in iter
         eq = closure[i]
         eq = expand_mod(eq)
-        expr = string(i)*" = "*string(eq)
-        expr = replace(expr, "(t)"=>"")
-        expr = replace(expr, ".0"=>"")
+        expr = string(i) * " = " * string(eq)
+        expr = replace(expr, "(t)" => "")
+        expr = replace(expr, ".0" => "")
         push!(exprs, expr)
     end
-    exprs
+    return exprs
 end
 
 
-@latexrecipe function f(eqs::MomentEquations, type=:equations; print_all=false)
+@latexrecipe function f(eqs::MomentEquations, type = :equations; print_all = false)
 
     env --> :align
     starred --> true
@@ -374,7 +374,7 @@ end
     if type == :equations
         return format_moment_eqs(eqs)
     elseif type == :closure
-        return format_closure(eqs, format_all=print_all)
+        return format_closure(eqs, format_all = print_all)
     else
         error("supported arguments are only `:equations` or `:closure`")
     end

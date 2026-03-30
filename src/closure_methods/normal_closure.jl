@@ -1,4 +1,4 @@
-function normal_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
+function normal_closure(sys::MomentEquations, binary_vars::Array{Int, 1} = Int[])
 
     closure = OrderedDict()
     closure_exp = OrderedDict()
@@ -23,19 +23,19 @@ function normal_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
     sub = Dict()
 
     # construct the corresponding truncated expressions of higher order central moments
-    for order in sys.m_order+1:sys.q_order
+    for order in (sys.m_order + 1):sys.q_order
 
         iter_r = filter(x -> sum(x) == order, sys.iter_q)
 
         for r in unique(sort(i) for i in iter_r)
             # the last term in the symbolic expression of cumulant κᵣ is Mᵣ (μᵣ)
             # therefore, as we here set κᵣ = 0, only simple manipulation is needed
-            closed_moment = -(K[r]-moments[r])
-            closed_moment = simplify(closed_moment, expand=true)
+            closed_moment = -(K[r] - moments[r])
+            closed_moment = simplify(closed_moment, expand = true)
 
             closure[moments[r]] = closed_moment
             closure_exp[moments[r]] = substitute(closed_moment, closure_exp)
-            closure_exp[moments[r]] = simplify(closure_exp[moments[r]], expand=true)
+            closure_exp[moments[r]] = simplify(closure_exp[moments[r]], expand = true)
 
             perms = collect(multiset_permutations(r, length(r)))[2:end]
 
@@ -60,6 +60,6 @@ function normal_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
 
     end
 
-    close_eqs(sys, closure_exp, closure, true)
+    return close_eqs(sys, closure_exp, closure, true)
 
 end
