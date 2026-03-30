@@ -4,13 +4,13 @@ In this example, we demonstrate how the [Linear Mapping Approximation (LMA)](@re
 
 We start by considering a simple nonlinear gene regulatory network (GRN) shown in the diagram below (adapted from [1]):
 ```@raw html
-<img src="https://augustinas1.github.io/MomentClosure.jl/dev/assets/nonlinear_genetic_feedback_loop_scheme.png" width="50%"/>⠀
+<img src="https://sciml.github.io/MomentClosure.jl/dev/assets/nonlinear_genetic_feedback_loop_scheme.png" width="50%"/>⠀
 ```
 Here we have a two-state gene promoter which can be in either state $G$ or $G^*$. As in a [previous example tutorial](@ref geometric-and-conditional), we interpret the gene as a distinct species modelled as a Bernoulli variable $g$, associating the states $G$ and $G^*$ with values $g=1$ and $g=0$ respectively. Protein $P$ is produced from both gene states $G$ and $G^*$ (with different rates $ρ_u$ and $ρ_b$) and can subsequently decay. The switch between $G$ and $G^*$ (or the feedback) is introduced via protein binding to the gene in state $G$.
 
 The first step in applying the LMA is to transform the nonlinear GRN into a linear GRN. This can be done by removing the second-order reaction between $P$ and $G$, so that the reversible reaction $G+P \underset{σ_u}{\stackrel{σ_b}{\rightleftharpoons}} G^*$ is replaced by $G \underset{σ_u}{\stackrel{\bar{σ}_b}{\rightleftharpoons}} G^*$. This equivalent linear GRN can be visualised as (adapted from [1]):
 ```@raw html
-<img src="https://augustinas1.github.io/MomentClosure.jl/dev/assets/linear_genetic_feedback_loop_scheme.png" width="50%"/>⠀
+<img src="https://sciml.github.io/MomentClosure.jl/dev/assets/linear_genetic_feedback_loop_scheme.png" width="50%"/>⠀
 ```
 Note that MomentClosure cannot automate this linearisation step as the choice of how the other reactions in the network are changed due to the removal of nonlinear reactions is arbitrary. For this reason, we define both nonlinear and linear GRNs using Catalyst as follows:
 ```julia
