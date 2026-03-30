@@ -1,8 +1,10 @@
-function conditional_gaussian_closure(sys::MomentEquations,
-                                      binary_vars::Array{Int,1}=Int[])
+function conditional_gaussian_closure(
+        sys::MomentEquations,
+        binary_vars::Array{Int, 1} = Int[]
+    )
 
     if isempty(binary_vars)
-      error("conditional closure does not work if there are no binary species")
+        error("conditional closure does not work if there are no binary species")
     end
     N = sys.N
     iv = get_iv(sys)
@@ -29,7 +31,7 @@ function conditional_gaussian_closure(sys::MomentEquations,
     iter_qs = vcat(sys.iter_1, sys.iter_m)
     sub = Dict()
 
-    for order in sys.m_order+1:sys.q_order
+    for order in (sys.m_order + 1):sys.q_order
 
         # building the closed moment expressions order by order (due to such hierarchical functional dependency)
         iter_order = filter(x -> sum(x) == order, sys.iter_q)
@@ -57,24 +59,32 @@ function conditional_gaussian_closure(sys::MomentEquations,
                     end
                 end
                 bernoulli_iter = Tuple(bernoulli_iter)
-                r = iter.-bernoulli_iter
+                r = iter .- bernoulli_iter
 
                 # step 2
-                conditional_μ = μ[bernoulli_iter]*(K[r] - μ[r])
-                conditional_μ = -simplify(conditional_μ, expand=true)
+                conditional_μ = μ[bernoulli_iter] * (K[r] - μ[r])
+                conditional_μ = -simplify(conditional_μ, expand = true)
 
                 # step 3
                 iter_conditional = filter(x -> 0 < sum(x) <= sum(r), nonbernoulli_iters)
-                conditional_sub = Dict([Pair(μ[iter], μ[iter.+bernoulli_iter]/μ[bernoulli_iter])
-                                       for iter in iter_conditional])
-                conditional_sub = Dict([Pair(μ[iter], μ[iter.+bernoulli_iter]*μ[bernoulli_iter]^-1)
-                                       for iter in iter_conditional])
+                conditional_sub = Dict(
+                    [
+                        Pair(μ[iter], μ[iter .+ bernoulli_iter] / μ[bernoulli_iter])
+                            for iter in iter_conditional
+                    ]
+                )
+                conditional_sub = Dict(
+                    [
+                        Pair(μ[iter], μ[iter .+ bernoulli_iter] * μ[bernoulli_iter]^-1)
+                            for iter in iter_conditional
+                    ]
+                )
                 conditional_μ = substitute(conditional_μ, conditional_sub)
-                conditional_μ = simplify(conditional_μ, expand=true)
+                conditional_μ = simplify(conditional_μ, expand = true)
 
                 closure_μ[μ[iter]] = conditional_μ
                 closure_μ_exp[μ[iter]] = substitute(conditional_μ, closure_μ_exp)
-                closure_μ_exp[μ[iter]] = simplify(closure_μ_exp[μ[iter]], expand=true)
+                closure_μ_exp[μ[iter]] = simplify(closure_μ_exp[μ[iter]], expand = true)
             else
                 # Case (ii)
 
@@ -83,11 +93,11 @@ function conditional_gaussian_closure(sys::MomentEquations,
                 # we assume that the marginal distribution P(p) also follows a Gaussian
                 # so that ⟨p^j⟩ is truncated according to normal closure
 
-                moment = simplify(-(K[iter]-μ[iter]), expand=true)
+                moment = simplify(-(K[iter] - μ[iter]), expand = true)
 
                 closure_μ[μ[iter]] = moment
                 closure_μ_exp[μ[iter]] = substitute(moment, closure_μ_exp)
-                closure_μ_exp[μ[iter]] = simplify(closure_μ_exp[μ[iter]], expand=true)
+                closure_μ_exp[μ[iter]] = simplify(closure_μ_exp[μ[iter]], expand = true)
             end
 
             perms = collect(multiset_permutations(iter, length(iter)))[2:end]
@@ -127,20 +137,20 @@ function conditional_gaussian_closure(sys::MomentEquations,
         for i in sys.iter_q
             μ_M[i] = closure_μ[μ[i]]
             μ_M[i] = substitute(μ_M[i], μ_central)
-            μ_M[i] = simplify(μ_M[i], expand=true)
+            μ_M[i] = simplify(μ_M[i], expand = true)
             μ_M_exp[i] = closure_μ_exp[μ[i]]
             μ_M_exp[i] = substitute(μ_M_exp[i], μ_central)
-            μ_M_exp[i] = simplify(μ_M_exp[i], expand=true)
+            μ_M_exp[i] = simplify(μ_M_exp[i], expand = true)
         end
         closure = OrderedDict()
         closure_exp = OrderedDict()
         # construct the corresponding truncated expressions of higher order
         # central moments from the obtained raw moment expressions
-        raw_to_central_exp = raw_to_central_moments(N, sys.q_order, μ=μ_M_exp, bernoulli=true, iv=iv)
-        raw_to_central = raw_to_central_moments(N, sys.q_order, μ=μ_M, bernoulli=true, iv=iv)
+        raw_to_central_exp = raw_to_central_moments(N, sys.q_order, μ = μ_M_exp, bernoulli = true, iv = iv)
+        raw_to_central = raw_to_central_moments(N, sys.q_order, μ = μ_M, bernoulli = true, iv = iv)
         for i in sys.iter_q
-            closure_exp[sys.M[i]] = simplify(raw_to_central_exp[i], expand=true)
-            closure[sys.M[i]] = simplify(raw_to_central[i], expand=true)
+            closure_exp[sys.M[i]] = simplify(raw_to_central_exp[i], expand = true)
+            closure[sys.M[i]] = simplify(raw_to_central[i], expand = true)
         end
 
     else
@@ -148,6 +158,6 @@ function conditional_gaussian_closure(sys::MomentEquations,
         closure = closure_μ
     end
 
-    close_eqs(sys, closure_exp, closure, false)
+    return close_eqs(sys, closure_exp, closure, false)
 
 end

@@ -7,22 +7,22 @@ function gen_iter(n, d)
             append!(iter, Tuple.(multiset_permutations(x, n)))
         end
     end
-    iter
+    return iter
 end
 
 function construct_iter_all(N::Int, order::Int)
-    mapreduce(vcat, 0:order) do d
-        Base.sort(gen_iter(N, d), rev=true)
+    return mapreduce(vcat, 0:order) do d
+        Base.sort(gen_iter(N, d), rev = true)
     end
 end
 
 # Trim a string of form "(a, b, c, d, ...)" to "abcd..."
-trim_key(expr) = filter(x -> !(isspace(x) || x == ')' || x== '(' || x==','), string(expr))
+trim_key(expr) = filter(x -> !(isspace(x) || x == ')' || x == '(' || x == ','), string(expr))
 
 # Symbolic rules to expand expressions avoiding binomial expansion and fraction simplification
-expansion_rule_mod = @acrule ~x * +(~~ys) => sum(map(y-> ~x * y, ~~ys))
+expansion_rule_mod = @acrule ~x * +(~~ys) => sum(map(y -> ~x * y, ~~ys))
 expand_expr = Fixpoint(Prewalk(PassThrough(expansion_rule_mod)))
-expand_div = Fixpoint(Prewalk(PassThrough(@rule( +(~~xs) / ~a => sum(map(x -> x / ~a, ~~xs) )))))
+expand_div = Fixpoint(Prewalk(PassThrough(@rule(+(~~xs) / ~a => sum(map(x -> x / ~a, ~~xs))))))
 expand_mod = Fixpoint(Chain([expand_div, expand_expr]))
 
 function define_μ(iter::AbstractVector, iv::BasicSymbolic)
@@ -37,17 +37,19 @@ function define_μ(iter::AbstractVector, iv::BasicSymbolic)
             sym_name = Symbol('μ', join(map_subscripts(indices[i])))
             sym_raw = Sym{FnType{Tuple{Any}, Real}}(sym_name)
             term_raw = Term{Real}(sym_raw, [iv])
-            μs[idx] = setmetadata(term_raw, Symbolics.VariableSource,
-                                  (:momentclosure, sym_name))
+            μs[idx] = setmetadata(
+                term_raw, Symbolics.VariableSource,
+                (:momentclosure, sym_name)
+            )
         end
     end
 
-    μs
+    return μs
 
 end
 
-define_μ(iter::AbstractVector, iv::Num=default_t()) = define_μ(iter, value(iv))
-define_μ(N::Int, order::Int, iv=default_t()) = define_μ(construct_iter_all(N, order), iv)
+define_μ(iter::AbstractVector, iv::Num = default_t()) = define_μ(iter, value(iv))
+define_μ(N::Int, order::Int, iv = default_t()) = define_μ(construct_iter_all(N, order), iv)
 
 function define_M(iter::AbstractVector, iv::BasicSymbolic)
 
@@ -63,19 +65,21 @@ function define_M(iter::AbstractVector, iv::BasicSymbolic)
             sym_name = Symbol('M', join(map_subscripts(indices[i])))
             sym_raw = Sym{FnType{Tuple{Any}, Real}}(sym_name)
             term_raw = Term{Real}(sym_raw, [iv])
-            Ms[idx] = setmetadata(term_raw, Symbolics.VariableSource,
-                                  (:momentclosure, sym_name))
+            Ms[idx] = setmetadata(
+                term_raw, Symbolics.VariableSource,
+                (:momentclosure, sym_name)
+            )
         end
     end
 
-    Ms
+    return Ms
 
 end
 
-define_M(iter::AbstractVector, iv::Num=default_t()) = define_M(iter, value(iv))
-define_M(N::Int, order::Int, iv=default_t()) = define_M(construct_iter_all(N, order), iv)
+define_M(iter::AbstractVector, iv::Num = default_t()) = define_M(iter, value(iv))
+define_M(N::Int, order::Int, iv = default_t()) = define_M(construct_iter_all(N, order), iv)
 
-function extract_variables(eqs::Array{Equation, 1}, μ, M=[])
+function extract_variables(eqs::Array{Equation, 1}, μ, M = [])
 
     vars = vcat(values(μ)..., values(M)...)
     # extract variables from rhs of each equation
@@ -85,7 +89,7 @@ function extract_variables(eqs::Array{Equation, 1}, μ, M=[])
     # need this as get_variables does not extract var from `Differential(t)(var(t))`
     diff_vars = [var_from_nested_derivative(eq.lhs)[1] for eq in eqs]
     # filter out the unique ones
-    unique(vcat(diff_vars, vars))
+    return unique(vcat(diff_vars, vars))
     # the correct ordering *should* be preserved
 
 end
@@ -119,7 +123,7 @@ function split_factor_pow(expr, iv, vars)
     exp isa Int || error("Unexpected exponent: $expr")
 
     factor, powers = split_factor(base, iv, vars)
-    factor ^ exp, powers .* exp
+    return factor^exp, powers .* exp
 end
 
 function split_factor_mul(expr, iv, vars)
@@ -132,7 +136,7 @@ function split_factor_mul(expr, iv, vars)
         powers .+= power_arg
     end
 
-    factor, powers
+    return factor, powers
 end
 
 function split_factor_div(expr, iv, vars)
@@ -141,12 +145,12 @@ function split_factor_div(expr, iv, vars)
 
     factor, powers = split_factor(num, iv, vars)
 
-    factor / denom, powers
+    return factor / denom, powers
 end
 
 function split_factor(expr, iv, vars)
-    
-    if ispow(expr)
+
+    return if ispow(expr)
         split_factor_pow(expr, iv, vars)
     elseif ismul(expr)
         split_factor_mul(expr, iv, vars)
@@ -166,7 +170,7 @@ function polynomial_propensity_div(expr, iv, vars)
     num, denom = arguments(expr)
     isconstant(denom, vars, iv) || error("The denominator $denom in propensity $expr is not constant.")
     factors, powers = polynomial_propensity(num, iv, vars)
-    factors ./denom, powers
+    return factors ./ denom, powers
 end
 
 function polynomial_propensity_add(expr, iv, vars)
@@ -183,11 +187,11 @@ function polynomial_propensity_add(expr, iv, vars)
         push!(powers, power_term)
     end
 
-    factors, powers
+    return factors, powers
 end
 
 function polynomial_propensity(expr, iv, vars)
-    if isdiv(expr)
+    return if isdiv(expr)
         polynomial_propensity_div(expr, iv, vars)
     elseif isadd(expr)
         polynomial_propensity_add(expr, iv, vars)
@@ -198,7 +202,7 @@ function polynomial_propensity(expr, iv, vars)
 end
 
 function polynomial_propensities(arr::AbstractArray, iv::BasicSymbolic, smap::AbstractDict)
-    vars = [ x for (x,_) in Base.sort(collect(smap), by=x->x[2]) ]
+    vars = [ x for (x, _) in Base.sort(collect(smap), by = x -> x[2]) ]
 
     all_factors = Array{Vector}(undef, size(arr))
     all_powers = Array{Vector{Vector{Int}}}(undef, size(arr))
@@ -209,5 +213,5 @@ function polynomial_propensities(arr::AbstractArray, iv::BasicSymbolic, smap::Ab
     end
 
     max_power = maximum(sum.(vcat(all_powers...)))
-    all_factors, all_powers, max_power
+    return all_factors, all_powers, max_power
 end

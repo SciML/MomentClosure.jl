@@ -10,7 +10,7 @@ function multi_binomial(a, b)
     end
 end
 
-function derivative_matching(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
+function derivative_matching(sys::MomentEquations, binary_vars::Array{Int, 1} = Int[])
 
     closure_exp = OrderedDict()
     closure = OrderedDict() # additional dict to hold not expanded symbolic expressions
@@ -44,8 +44,8 @@ function derivative_matching(sys::MomentEquations, binary_vars::Array{Int,1}=Int
     iter_k = vcat(sys.iter_1, sys.iter_m)
     sub = Dict()
 
-    for order in sys.m_order+1:sys.q_order
-        
+    for order in (sys.m_order + 1):sys.q_order
+
         length_k = length(iter_k)
 
         # iterator through all moments of the current truncation order
@@ -76,7 +76,7 @@ function derivative_matching(sys::MomentEquations, binary_vars::Array{Int,1}=Int
             # to use integer powers instead of float ones for simpler symbolic manipulations.
             # The code will break otherwise, throwing an InexactError attempting to convert Float to Int.
             # If this ever happens we know what to fix. TODO: add exception handling?
-            γ = A\b
+            γ = A \ b
 
             closed_μ[m] = prod([closed_μ[iter_k[i]]^Int(γ[i]) for i in 1:length_k])
             closed_μ[m] = simplify(closed_μ[m])
@@ -112,13 +112,13 @@ function derivative_matching(sys::MomentEquations, binary_vars::Array{Int,1}=Int
     if typeof(sys) == CentralMomentEquations
         # construct the corresponding truncated expressions of higher order
         # central moments from the obtained raw moment expressions
-        raw_to_central = raw_to_central_moments(N, sys.q_order, μ=closed_μ, bernoulli=isbernoulli, iv=iv)
+        raw_to_central = raw_to_central_moments(N, sys.q_order, μ = closed_μ, bernoulli = isbernoulli, iv = iv)
         central_to_raw = central_to_raw_moments(N, sys.q_order; iv)
         closure_M = OrderedDict()
         for i in sys.iter_q
             closure_exp[sys.M[i]] = raw_to_central[i]
-            expr = simplify(central_to_raw[i]-sys.M[i])
-            closure_M[sys.M[i]] = simplify(closure[μ_symbolic[i]]-expr)
+            expr = simplify(central_to_raw[i] - sys.M[i])
+            closure_M[sys.M[i]] = simplify(closure[μ_symbolic[i]] - expr)
         end
         closure = closure_M
     else
@@ -127,6 +127,6 @@ function derivative_matching(sys::MomentEquations, binary_vars::Array{Int,1}=Int
         end
     end
 
-    close_eqs(sys, closure_exp, closure, false)
+    return close_eqs(sys, closure_exp, closure, false)
 
 end

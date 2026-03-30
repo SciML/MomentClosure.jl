@@ -20,23 +20,27 @@ Notes:
   in the reaction network). By default, this is consistent with the internal system ordering
   accessible with [`Catalyst.speciesmap`](https://docs.sciml.ai/Catalyst/stable/api/core_api/#Catalyst.speciesmap).
 """
-function generate_raw_moment_eqs(rn::ReactionSystem, m_order::Int;
-                                 langevin::Bool=false, combinatoric_ratelaws::Bool=true, smap=speciesmap(rn))
-    
+function generate_raw_moment_eqs(
+        rn::ReactionSystem, m_order::Int;
+        langevin::Bool = false, combinatoric_ratelaws::Bool = true, smap = speciesmap(rn)
+    )
+
     iv = get_iv(rn)
     N = numspecies(rn)
     S = get_stoichiometry(rn, smap)
     a = propensities(rn; combinatoric_ratelaws)
 
     if langevin
-        drift = S*a
-        diff = Num[S[i,k] * a[k]^(1//2) for i in 1:N, k in eachindex(a)]
-        
-        return generate_raw_moment_eqs(Equation[Differential(iv)(s) ~ d for (s, d) in zip(species(rn), drift)], 
-                                       diff, m_order, unknowns(rn), nameof(rn), parameters(rn), iv)
-    
+        drift = S * a
+        diff = Num[S[i, k] * a[k]^(1 // 2) for i in 1:N, k in eachindex(a)]
+
+        return generate_raw_moment_eqs(
+            Equation[Differential(iv)(s) ~ d for (s, d) in zip(species(rn), drift)],
+            diff, m_order, unknowns(rn), nameof(rn), parameters(rn), iv
+        )
+
     end
-        
+
     term_factors, term_powers, poly_order = polynomial_propensities(a, iv, smap)
 
     q_order = poly_order + m_order - 1
@@ -55,16 +59,16 @@ function generate_raw_moment_eqs(rn::ReactionSystem, m_order::Int;
     dμ = Dict()
     for i in vcat(iter_1, iter_m)
         dμ[i] = 0
-        for r = 1:numreactions(rn)
+        for r in 1:numreactions(rn)
             iter_j = filter(x -> all(x .<= i) && sum(x) <= sum(i) - 1, iter_all)
             for j in iter_j
                 factor_j = 1.0
-                for k = 1:N
+                for k in 1:N
                     factor_j *= expected_coeff(S[k, r], i[k] - j[k]) * binomial(i[k], j[k])
                 end
                 suma = 0.0
-                for k = 1:length(term_factors[r])
-                    suma += term_factors[r][k] * μ[j.+Tuple(term_powers[r][k])]
+                for k in 1:length(term_factors[r])
+                    suma += term_factors[r][k] * μ[j .+ Tuple(term_powers[r][k])]
                 end
                 dμ[i] += factor_j * suma
             end
@@ -80,9 +84,9 @@ function generate_raw_moment_eqs(rn::ReactionSystem, m_order::Int;
 
     vars = extract_variables(eqs, μ)
     odename = Symbol(nameof(rn), "_raw_moment_eqs_m", m_order)
-    odes = ODESystem(eqs, iv, vars, get_ps(rn); name=odename)
+    odes = ODESystem(eqs, iv, vars, get_ps(rn); name = odename)
 
-    RawMomentEquations(
+    return RawMomentEquations(
         odes,
         smap,
         μ,

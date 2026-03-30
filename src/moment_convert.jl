@@ -19,7 +19,7 @@ Dict{Any,Any} with 5 entries:
   (1, 1) => μ₁₁(t) - ((μ₀₁(t))*(μ₁₀(t)))
 ```
 """
-function cumulants_to_raw_moments(N::Int, max_order::Int; μ=nothing, iv=default_t())
+function cumulants_to_raw_moments(N::Int, max_order::Int; μ = nothing, iv = default_t())
 
     # following Smith (1995)
 
@@ -47,7 +47,7 @@ function cumulants_to_raw_moments(N::Int, max_order::Int; μ=nothing, iv=default
         iter_order = filter(x -> sum(x) == order, iter_all)
         for r in iter_order
 
-            ind = findall(x -> x!= 0, r)[end]
+            ind = findall(x -> x != 0, r)[end]
             r_sub = r .- iter_1[ind]
             iter_i = filter(x -> all(x .<= r_sub), iter_all)
 
@@ -57,7 +57,7 @@ function cumulants_to_raw_moments(N::Int, max_order::Int; μ=nothing, iv=default
                 for j in 1:N
                     factor *= binomial(r_sub[j], i[j])
                 end
-                suma += factor*μ[r.-i]*μ_star[i]
+                suma += factor * μ[r .- i] * μ_star[i]
             end
             K[r] = simplify(suma)
 
@@ -67,14 +67,14 @@ function cumulants_to_raw_moments(N::Int, max_order::Int; μ=nothing, iv=default
                 for j in 1:N
                     factor *= binomial(r_sub[j], i[j])
                 end
-                suma += factor*(-K[r.-i])*μ_star[i]
+                suma += factor * (-K[r .- i]) * μ_star[i]
             end
             μ_star[r] = simplify(suma)
         end
 
     end
 
-    K
+    return K
 
 end
 
@@ -86,7 +86,7 @@ in terms of raw moments ``M``. Return a Dictionary mapping from
 vector ``\\mathbf{i}`` (that indicates the cumulant ``κ_{\\mathbf{i}}``)
 to the corresponding central moment expressions.
 """
-function cumulants_to_central_moments(N::Int, max_order::Int; iv=default_t())
+function cumulants_to_central_moments(N::Int, max_order::Int; iv = default_t())
 
     # obtain cumulants up to (m_order)^th order in terms of
     # central moments using formula from Balakrishan et al. (1998)
@@ -98,7 +98,7 @@ function cumulants_to_central_moments(N::Int, max_order::Int; iv=default_t())
     iter_1 = filter(x -> sum(x) == 1, iter_all)
     μ = define_μ(iter_1, iv)
     M = define_M(iter_all, iv)
-    
+
     M_star[Tuple(zeros(N))] = 1.0
     for i in 1:N
         eᵢ = iter_1[i]
@@ -112,7 +112,7 @@ function cumulants_to_central_moments(N::Int, max_order::Int; iv=default_t())
         iter_order = filter(x -> sum(x) == order, iter_all)
         for r in iter_order
 
-            ind = findall(x -> x!= 0, r)[end]
+            ind = findall(x -> x != 0, r)[end]
             r_sub = r .- iter_1[ind]
             iter_i = filter(x -> all(x .<= r_sub), iter_all)
             # find the cumulant \kappa_{\bm{r}}}
@@ -122,7 +122,7 @@ function cumulants_to_central_moments(N::Int, max_order::Int; iv=default_t())
                 for j in 1:N
                     factor *= binomial(r_sub[j], i[j])
                 end
-                suma += factor*M[r.-i]*M_star[i]
+                suma += factor * M[r .- i] * M_star[i]
             end
             K[r] = simplify(suma)
 
@@ -133,21 +133,21 @@ function cumulants_to_central_moments(N::Int, max_order::Int; iv=default_t())
                 for j in 1:N
                     factor *= binomial(r_sub[j], i[j])
                 end
-                suma += factor*(-K[r.-i])*M_star[i]
+                suma += factor * (-K[r .- i]) * M_star[i]
             end
-            suma -= -μ[iter_1[ind]]*M_star[r_sub]
+            suma -= -μ[iter_1[ind]] * M_star[r_sub]
             M_star[r] = simplify(suma)
 
         end
 
     end
 
-    K
+    return K
 
 end
 
 
-function raw_to_central_moments(N::Int, order::Int; μ=nothing, bernoulli=false, iv=default_t())
+function raw_to_central_moments(N::Int, order::Int; μ = nothing, bernoulli = false, iv = default_t())
 
     # Return a dictionary of central moments expressed in terms of raw moments
     # example use:
@@ -177,20 +177,20 @@ function raw_to_central_moments(N::Int, order::Int; μ=nothing, bernoulli=false,
         iter_j = Iterators.filter(x -> all(x .<= i), iter_all)
         suma = 0.0
         for j in iter_j
-            term = μ[i.-j]
+            term = μ[i .- j]
             for (k, e_k) in zip(1:N, iter_μ)
-                term *= (-1)^(j[k])*binomial(i[k], j[k])*μ[e_k]^j[k]
+                term *= (-1)^(j[k]) * binomial(i[k], j[k]) * μ[e_k]^j[k]
             end
             suma += term
         end
-        raw_to_central[i] = simplify(suma, simplify_fractions=false)
+        raw_to_central[i] = simplify(suma, simplify_fractions = false)
     end
 
-    raw_to_central
+    return raw_to_central
 
 end
 
-function central_to_raw_moments(N::Int, order::Int; iv=default_t())
+function central_to_raw_moments(N::Int, order::Int; iv = default_t())
 
     # Return a dictionary of raw moments expressed in terms of central moments
     # example use:
@@ -211,15 +211,15 @@ function central_to_raw_moments(N::Int, order::Int; iv=default_t())
         iter_j = Iterators.filter(x -> all(x .<= i), iter_all)
         suma = 0.0
         for j in iter_j
-            term = M[i.-j]
+            term = M[i .- j]
             for (k, e_k) in zip(1:N, iter_μ)
-                term *= binomial(i[k], j[k])*μ[e_k]^j[k]
+                term *= binomial(i[k], j[k]) * μ[e_k]^j[k]
             end
             suma += term
         end
-        central_to_raw[i] = simplify(suma, simplify_fractions=false)
+        central_to_raw[i] = simplify(suma, simplify_fractions = false)
     end
 
-    central_to_raw
+    return central_to_raw
 
 end

@@ -25,65 +25,70 @@ Notes:
   of a `ReactionSystem`, see the notes for [`Catalyst.jumpratelaw`]
   (https://docs.sciml.ai/Catalyst/stable/api/core_api/#Catalyst.jumpratelaw).
 """
-function linear_mapping_approximation(rn_nonlinear::T, rn_linear::T, binary_vars::Array{Int,1}=Int[], m_order::Int=0;
-                                      combinatoric_ratelaws = true) where T <: ReactionSystem
+function linear_mapping_approximation(
+        rn_nonlinear::T, rn_linear::T, binary_vars::Array{Int, 1} = Int[], m_order::Int = 0;
+        combinatoric_ratelaws = true
+    ) where {T <: ReactionSystem}
 
-      # check that all necessary information is provided and that LMA is applicable on the given nonlinear system
+    # check that all necessary information is provided and that LMA is applicable on the given nonlinear system
 
-      # TODO: add further checks that both rn_nonlinear and rn_linear have reactions ordered identically
-      @assert !isempty(binary_vars) "LMA does not work if there are no binary species"
-      submat = substoichmat(rn_nonlinear)'
-      no_substrates = vcat(sum(submat, dims=2)...)
-      no_binary = vcat(sum(submat[:, binary_vars], dims=2)...)
-      nonlinear_rs_inds = findall(no_substrates .> 1)
-      @assert all(x == 1 for x in no_binary[nonlinear_rs_inds]) "non-linear reactions must involve one type of binary species"
-      @assert all(submat[nonlinear_rs_inds, binary_vars] .< 2) "cannot have more than 1 molecules of each binary species"
-      @assert all(sum(substoichmat(rn_linear), dims=1) .<= 1) "the linear network cannot contain nonlinear reactions"
+    # TODO: add further checks that both rn_nonlinear and rn_linear have reactions ordered identically
+    @assert !isempty(binary_vars) "LMA does not work if there are no binary species"
+    submat = substoichmat(rn_nonlinear)'
+    no_substrates = vcat(sum(submat, dims = 2)...)
+    no_binary = vcat(sum(submat[:, binary_vars], dims = 2)...)
+    nonlinear_rs_inds = findall(no_substrates .> 1)
+    @assert all(x == 1 for x in no_binary[nonlinear_rs_inds]) "non-linear reactions must involve one type of binary species"
+    @assert all(submat[nonlinear_rs_inds, binary_vars] .< 2) "cannot have more than 1 molecules of each binary species"
+    @assert all(sum(substoichmat(rn_linear), dims = 1) .<= 1) "the linear network cannot contain nonlinear reactions"
 
-      linearised_rs = reactions(rn_linear)[nonlinear_rs_inds]
-      @assert all(!reaction.only_use_rate for reaction in linearised_rs) "linearised nonlinear reactions must follow the law of mass action (defining reactions using Catalyst's →)"
-      coeffs = (reaction.rate for reaction in linearised_rs)
+    linearised_rs = reactions(rn_linear)[nonlinear_rs_inds]
+    @assert all(!reaction.only_use_rate for reaction in linearised_rs) "linearised nonlinear reactions must follow the law of mass action (defining reactions using Catalyst's →)"
+    coeffs = (reaction.rate for reaction in linearised_rs)
 
-      # apply LMA: substitute reaction parameters in the linear network moment equations to reflect
-      # the nonlinear interactions according to the LMA methodology
+    # apply LMA: substitute reaction parameters in the linear network moment equations to reflect
+    # the nonlinear interactions according to the LMA methodology
 
-      term_factors, term_powers, poly_order = polynomial_propensities(propensities(rn_nonlinear; combinatoric_ratelaws)[nonlinear_rs_inds], 
-                                                                      get_iv(rn_nonlinear), speciesmap(rn_nonlinear))
+    term_factors, term_powers, poly_order = polynomial_propensities(
+        propensities(rn_nonlinear; combinatoric_ratelaws)[nonlinear_rs_inds],
+        get_iv(rn_nonlinear), speciesmap(rn_nonlinear)
+    )
 
-      order = iszero(m_order) ? poly_order : max(poly_order, m_order)
-      try sys = generate_raw_moment_eqs(rn_linear, order; combinatoric_ratelaws, smap=speciesmap(rn_nonlinear))
-      catch e
-            error("LMA cannot handle reactions with non-polynomial rates\n $e")
-      end
-      sys = bernoulli_moment_eqs(sys, binary_vars)
+    order = iszero(m_order) ? poly_order : max(poly_order, m_order)
+    try
+        sys = generate_raw_moment_eqs(rn_linear, order; combinatoric_ratelaws, smap = speciesmap(rn_nonlinear))
+    catch e
+        error("LMA cannot handle reactions with non-polynomial rates\n $e")
+    end
+    sys = bernoulli_moment_eqs(sys, binary_vars)
 
-      which_binary = [binary_vars[findfirst(submat[i, binary_vars] .> 0)] for i in nonlinear_rs_inds]
-      sub_params = OrderedDict()
-      μ = sys.μ
-      for (coeff, factors, powers, binary_ind) in zip(coeffs, term_factors, term_powers, which_binary)
-            sub_params[coeff] = sum(factor*μ[Tuple(power)] for (factor, power) in zip(factors, powers))
-            #sub_params[coeff] /= μ[sys.iter_1[binary_ind]]
-            sub_params[coeff] *= μ[sys.iter_1[binary_ind]]^-1
-            sub_params[coeff] = simplify(sub_params[coeff])
-      end
+    which_binary = [binary_vars[findfirst(submat[i, binary_vars] .> 0)] for i in nonlinear_rs_inds]
+    sub_params = OrderedDict()
+    μ = sys.μ
+    for (coeff, factors, powers, binary_ind) in zip(coeffs, term_factors, term_powers, which_binary)
+        sub_params[coeff] = sum(factor * μ[Tuple(power)] for (factor, power) in zip(factors, powers))
+        #sub_params[coeff] /= μ[sys.iter_1[binary_ind]]
+        sub_params[coeff] *= μ[sys.iter_1[binary_ind]]^-1
+        sub_params[coeff] = simplify(sub_params[coeff])
+    end
 
-      LMA_eqs = Equation[]
-      for eq in get_eqs(sys)
-            rhs = substitute(eq.rhs, sub_params)
-            rhs = expand(rhs)
-            push!(LMA_eqs, Equation(eq.lhs, rhs))
-      end
+    LMA_eqs = Equation[]
+    for eq in get_eqs(sys)
+        rhs = substitute(eq.rhs, sub_params)
+        rhs = expand(rhs)
+        push!(LMA_eqs, Equation(eq.lhs, rhs))
+    end
 
-      field_values = [getfield(sys, field) for field in fieldnames(typeof(sys))]
+    field_values = [getfield(sys, field) for field in fieldnames(typeof(sys))]
 
-      iv = get_iv(sys)
-      ps = parameters(rn_nonlinear)
-      vars = unknowns(sys)
-      odename = Symbol(nameof(sys), "_LMA")
-      odes = ODESystem(LMA_eqs, iv, vars, ps; name=odename)
-      new_system = typeof(sys)(odes, field_values[2:end]...)
+    iv = get_iv(sys)
+    ps = parameters(rn_nonlinear)
+    vars = unknowns(sys)
+    odename = Symbol(nameof(sys), "_LMA")
+    odes = ODESystem(LMA_eqs, iv, vars, ps; name = odename)
+    new_system = typeof(sys)(odes, field_values[2:end]...)
 
-      new_system, sub_params
+    return new_system, sub_params
 
 end
 

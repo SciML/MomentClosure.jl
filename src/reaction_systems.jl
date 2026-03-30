@@ -8,8 +8,8 @@ Notes:
   of a `ReactionSystem`, see the notes for [`Catalyst.jumpratelaw`]
   (https://docs.sciml.ai/Catalyst/stable/api/core_api/#Catalyst.jumpratelaw).
 """
-function propensities(rn::ReactionSystem; combinatoric_ratelaws::Bool=true)
-    simplify.(jumpratelaw.(reactions(rn); combinatoric_ratelaw=combinatoric_ratelaws))
+function propensities(rn::ReactionSystem; combinatoric_ratelaws::Bool = true)
+    return simplify.(jumpratelaw.(reactions(rn); combinatoric_ratelaw = combinatoric_ratelaws))
 end
 
 """
@@ -27,10 +27,10 @@ Notes:
 function get_stoichiometry(rn::ReactionSystem, smap::AbstractDict)
     nmat = Matrix(undef, numspecies(rn), numreactions(rn))
     fill!(nmat, 0)
-    for (k,rx) in pairs(reactions(rn))
-        for (spec,coef) in rx.netstoich
-            nmat[smap[spec],k] = coef
+    for (k, rx) in pairs(reactions(rn))
+        for (spec, coef) in rx.netstoich
+            nmat[smap[spec], k] = coef
         end
     end
-    nmat
+    return nmat
 end

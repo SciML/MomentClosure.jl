@@ -1,4 +1,4 @@
-function log_normal_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[])
+function log_normal_closure(sys::MomentEquations, binary_vars::Array{Int, 1} = Int[])
 
     closure = OrderedDict()
     closure_exp = OrderedDict()
@@ -27,9 +27,9 @@ function log_normal_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[
             eⱼ = sys.iter_1[j]
             eₖ = sys.iter_1[k]
             if sys isa CentralMomentEquations
-                Σ[(j,k)] = 1 + M[eⱼ .+ eₖ] * μ[eⱼ]^-1 * μ[eₖ]^-1
+                Σ[(j, k)] = 1 + M[eⱼ .+ eₖ] * μ[eⱼ]^-1 * μ[eₖ]^-1
             else
-                Σ[(j,k)] = μ[eⱼ .+ eₖ] * μ[eⱼ]^-1 * μ[eₖ]^-1
+                Σ[(j, k)] = μ[eⱼ .+ eₖ] * μ[eⱼ]^-1 * μ[eₖ]^-1
             end
         end
     end
@@ -41,10 +41,10 @@ function log_normal_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[
     for i in unique_iter_q
         term = prod([μ[sys.iter_1[j]]^i[j] for j in 1:N])
         for j in 1:N
-            for k in j+1:N
-                term *= Σ[j,k]^(i[j]*i[k])
+            for k in (j + 1):N
+                term *= Σ[j, k]^(i[j] * i[k])
             end
-            term *= Σ[j,j]^(i[j]*(i[j]-1)÷2) # ÷ - Integer divide
+            term *= Σ[j, j]^(i[j] * (i[j] - 1) ÷ 2) # ÷ - Integer divide
         end
         μ[i] = simplify(term)
         closure[μ_symbolic[i]] = μ[i]
@@ -73,18 +73,18 @@ function log_normal_closure(sys::MomentEquations, binary_vars::Array{Int,1}=Int[
     if sys isa CentralMomentEquations
         # construct the corresponding truncated expressions of higher order
         # central moments from the obtained log-normal raw moment expressions
-        raw_to_central = raw_to_central_moments(N, sys.q_order, μ=μ, bernoulli=isbernoulli, iv=iv)
+        raw_to_central = raw_to_central_moments(N, sys.q_order, μ = μ, bernoulli = isbernoulli, iv = iv)
         central_to_raw = central_to_raw_moments(N, sys.q_order; iv)
         closure_M = OrderedDict()
         for i in sys.iter_q
             closure_exp[M[i]] = expand_mod(raw_to_central[i])
-            closure_M[M[i]] = closure[μ_symbolic[i]]-(central_to_raw[i]-M[i])
+            closure_M[M[i]] = closure[μ_symbolic[i]] - (central_to_raw[i] - M[i])
             closure_M[M[i]] = expand_mod(closure_M[M[i]])
         end
         closure = closure_M
     else
         closure_exp = closure
     end
-    
-    close_eqs(sys, closure_exp, closure, false)
+
+    return close_eqs(sys, closure_exp, closure, false)
 end

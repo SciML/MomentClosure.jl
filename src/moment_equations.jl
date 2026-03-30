@@ -103,14 +103,16 @@ Note that the initial condition `u0` can be defined as follows:
 - To handle a more complicated initial condition, `u0` can be defined with the initial values of each moment directly, 
   but `use_deterministic_IC` must be set to `false` to ensure correctness.
 """
-function SciMLBase.ODEProblem(sys::MomentEquations, u0, tspan, p=NullParameters(); 
-                              use_deterministic_IC::Bool=true, kwargs...)
+function SciMLBase.ODEProblem(
+        sys::MomentEquations, u0, tspan, p = NullParameters();
+        use_deterministic_IC::Bool = true, kwargs...
+    )
     u0map = use_deterministic_IC ? deterministic_IC(u0, sys) : u0
-    ODEProblem(complete(get_odes(sys)), u0map, tspan, p; kwargs...)
+    return ODEProblem(complete(get_odes(sys)), u0map, tspan, p; kwargs...)
 end
 
 function Base.nameof(eqs::MomentEquations)
-    nameof(get_odes(eqs))
+    return nameof(get_odes(eqs))
 end
 
 # Basic `MomentEquations`-specific accessors

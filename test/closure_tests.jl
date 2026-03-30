@@ -6,95 +6,95 @@ using Test
 using Catalyst
 
 rn = @reaction_network begin
-    (c₁/Ω^2), 2X + Y → 3X
+    (c₁ / Ω^2), 2X + Y → 3X
     (c₂), X → Y
-    (Ω*c₃, c₄), 0 ↔ X
+    (Ω * c₃, c₄), 0 ↔ X
 end
 
 @syms c₁::Real c₂::Real c₃::Real c₄::Real Ω::Real
-μ = define_μ(2,4)
-M = define_M(2,4)
+μ = define_μ(2, 4)
+M = define_M(2, 4)
 
 # --- Test closures on central moment equations ---
 
-sys = generate_central_moment_eqs(rn, 2, 4, combinatoric_ratelaws=false)
+sys = generate_central_moment_eqs(rn, 2, 4, combinatoric_ratelaws = false)
 expr1 = get_eqs(sys)[1].rhs
 closed_eqs = moment_closure(sys, "zero")
 @test get_closure(closed_eqs) isa MomentClosure.OrderedDict
-@test get_closure(closed_eqs)[M[2,2]] == 0
+@test get_closure(closed_eqs)[M[2, 2]] == 0
 expr1 = get_eqs(closed_eqs)[1].rhs
-expr2 = c₃*Ω + M[1,1]*c₁*μ[1,0]*(Ω^-2) + M[1,1]*c₁*(Ω^-2)*(μ[1,0]- 1) + c₁*M[2,0]*μ[0,1]*(Ω^-2) +
-        c₁*μ[0,1]*μ[1,0]*(Ω^-2)*(μ[1,0] - 1) - c₂*μ[1,0] - c₄*μ[1,0]
+expr2 = c₃ * Ω + M[1, 1] * c₁ * μ[1, 0] * (Ω^-2) + M[1, 1] * c₁ * (Ω^-2) * (μ[1, 0] - 1) + c₁ * M[2, 0] * μ[0, 1] * (Ω^-2) +
+    c₁ * μ[0, 1] * μ[1, 0] * (Ω^-2) * (μ[1, 0] - 1) - c₂ * μ[1, 0] - c₄ * μ[1, 0]
 @test isequal(simplify(expr1), simplify(expr2))
 
 # check that deterministic_IC is working with central moments
 ic_values = Dict(deterministic_IC([2, 5], closed_eqs))
 @test length(ic_values) == 5
-@test ic_values[μ[1,0]] == 2 && ic_values[μ[0,1]] == 5 && ic_values[M[1,1]] == 0
+@test ic_values[μ[1, 0]] == 2 && ic_values[μ[0, 1]] == 5 && ic_values[M[1, 1]] == 0
 
 closed_eqs = moment_closure(sys, "normal")
-@test isequal(get_closure(closed_eqs)[M[0,4]], 3*M[0,2]^2)
+@test isequal(get_closure(closed_eqs)[M[0, 4]], 3 * M[0, 2]^2)
 
-closed_eqs= moment_closure(sys, "log-normal")
-expr1 = get_closure(closed_eqs)[M[1,2]]
-expr2 = μ[1,0]*μ[0,1]^2*(1.0+M[0,2]*μ[0,1]^-2)*(1.0 + M[1,1]*(μ[0,1]^-1)*(μ[1,0]^-1))^2 -
-        M[0,2]*μ[1,0] - μ[1,0]*μ[0,1]^2 - 2*M[1,1]*μ[0,1]
+closed_eqs = moment_closure(sys, "log-normal")
+expr1 = get_closure(closed_eqs)[M[1, 2]]
+expr2 = μ[1, 0] * μ[0, 1]^2 * (1.0 + M[0, 2] * μ[0, 1]^-2) * (1.0 + M[1, 1] * (μ[0, 1]^-1) * (μ[1, 0]^-1))^2 -
+    M[0, 2] * μ[1, 0] - μ[1, 0] * μ[0, 1]^2 - 2 * M[1, 1] * μ[0, 1]
 @test isequal(Fixpoint(simplify)(expr1), Fixpoint(simplify)(expr2))
 
 closed_eqs = moment_closure(sys, "poisson")
-@test isequal(get_closure(closed_eqs)[M[3,0]], μ[1,0])
+@test isequal(get_closure(closed_eqs)[M[3, 0]], μ[1, 0])
 
 closed_eqs = moment_closure(sys, "gamma")
-expr1 = get_closure(closed_eqs)[M[2,1]]
-expr2 = M[2,0]*μ[0,1] + μ[0,1]*μ[1,0]^2 + 2*M[1,1]*μ[1,0] + 2*M[1,1]*M[2,0]*μ[1,0]^-1 -
-    M[2,0]*μ[0,1] - μ[0,1]*μ[1,0]^2 - 2*M[1,1]*μ[1,0]
+expr1 = get_closure(closed_eqs)[M[2, 1]]
+expr2 = M[2, 0] * μ[0, 1] + μ[0, 1] * μ[1, 0]^2 + 2 * M[1, 1] * μ[1, 0] + 2 * M[1, 1] * M[2, 0] * μ[1, 0]^-1 -
+    M[2, 0] * μ[0, 1] - μ[0, 1] * μ[1, 0]^2 - 2 * M[1, 1] * μ[1, 0]
 @test isequal(expr1, expr2)
 
 closed_eqs = moment_closure(sys, "derivative matching")
-expr1 = get_closure(closed_eqs)[sys.M[0,4]]
-expr2 = μ[0,1]^4*(M[0,2]+μ[0,1]^2)^-6*(M[0,3]+μ[0,1]^3+3*M[0,2]*μ[0,1])^4 - μ[0,1]^4 -
-    6*M[0,2]*μ[0,1]^2 - 4*M[0,3]*μ[0,1]
+expr1 = get_closure(closed_eqs)[sys.M[0, 4]]
+expr2 = μ[0, 1]^4 * (M[0, 2] + μ[0, 1]^2)^-6 * (M[0, 3] + μ[0, 1]^3 + 3 * M[0, 2] * μ[0, 1])^4 - μ[0, 1]^4 -
+    6 * M[0, 2] * μ[0, 1]^2 - 4 * M[0, 3] * μ[0, 1]
 @test isequal(simplify(expr1), simplify(expr2))
 
 # --- Test closures on raw moment equations ---
 
-sys = generate_raw_moment_eqs(rn, 2, combinatoric_ratelaws=false)
+sys = generate_raw_moment_eqs(rn, 2, combinatoric_ratelaws = false)
 closed_eqs = moment_closure(sys, "zero")
-expr1 = get_closure(closed_eqs)[μ[3,0]]
-expr2 = -2*μ[1,0]^3 + 3*μ[1,0]*μ[2,0]
+expr1 = get_closure(closed_eqs)[μ[3, 0]]
+expr2 = -2 * μ[1, 0]^3 + 3 * μ[1, 0] * μ[2, 0]
 @test isequal(expr1, expr2)
 
 closed_eqs = moment_closure(sys, "normal")
-expr1 = get_closure(closed_eqs)[sys.μ[1,2]]
-expr2 = 2*μ[0,1]*μ[1,1] + μ[0,2]*μ[1,0] - 2*μ[1,0]*μ[0,1]^2
+expr1 = get_closure(closed_eqs)[sys.μ[1, 2]]
+expr2 = 2 * μ[0, 1] * μ[1, 1] + μ[0, 2] * μ[1, 0] - 2 * μ[1, 0] * μ[0, 1]^2
 @test isequal(expr1, expr2)
 expr1 = get_eqs(closed_eqs)[5].rhs
-expr2 = c₂*μ[1,0] + 2*c₂*μ[1,1] + c₁*μ[0,1]*μ[2,0]*Ω^-2 - c₁*μ[1,1]*Ω^-2 - 4*c₁*μ[1,1]^2*Ω^-2 + 4*c₁*μ[0,1]*μ[1,1]*Ω^-2 -
-    2*c₁*μ[0,1]*μ[1,0]^2*Ω^-2 + 2*c₁*μ[0,2]*μ[1,0]*Ω^-2 -2*c₁*μ[0,2]*μ[2,0]*Ω^-2 + 2*c₁*μ[1,0]*μ[1,1]*Ω^-2 -
-    4*c₁*μ[1,0]*μ[0,1]^2*Ω^-2 + 4*c₁*μ[0,1]^2*μ[1,0]^2*Ω^-2
+expr2 = c₂ * μ[1, 0] + 2 * c₂ * μ[1, 1] + c₁ * μ[0, 1] * μ[2, 0] * Ω^-2 - c₁ * μ[1, 1] * Ω^-2 - 4 * c₁ * μ[1, 1]^2 * Ω^-2 + 4 * c₁ * μ[0, 1] * μ[1, 1] * Ω^-2 -
+    2 * c₁ * μ[0, 1] * μ[1, 0]^2 * Ω^-2 + 2 * c₁ * μ[0, 2] * μ[1, 0] * Ω^-2 - 2 * c₁ * μ[0, 2] * μ[2, 0] * Ω^-2 + 2 * c₁ * μ[1, 0] * μ[1, 1] * Ω^-2 -
+    4 * c₁ * μ[1, 0] * μ[0, 1]^2 * Ω^-2 + 4 * c₁ * μ[0, 1]^2 * μ[1, 0]^2 * Ω^-2
 @test isequal(simplify(expr1), simplify(expr2))
 
 # check that deterministic_IC is working with raw moments
 ic_values = Dict(deterministic_IC([2, 5], closed_eqs))
 @test length(ic_values) == 5
-@test ic_values[μ[1,0]] == 2 && ic_values[μ[0,1]] == 5 && ic_values[μ[1,1]] == 10
+@test ic_values[μ[1, 0]] == 2 && ic_values[μ[0, 1]] == 5 && ic_values[μ[1, 1]] == 10
 
 closed_eqs = moment_closure(sys, "log-normal")
-expr1 = get_closure(closed_eqs)[μ[1,3]]
-expr2 = μ[0,1]^-6 * μ[0,2]^3 * μ[1,0]^-2 * μ[1,1]^3
+expr1 = get_closure(closed_eqs)[μ[1, 3]]
+expr2 = μ[0, 1]^-6 * μ[0, 2]^3 * μ[1, 0]^-2 * μ[1, 1]^3
 @test isequal(expr1, expr2)
 
 closed_eqs = moment_closure(sys, "poisson")
-expr1 = get_closure(closed_eqs)[μ[4,0]]
-expr2 = μ[1,0] + 6 * μ[1,0]^4 + 3*μ[2,0]^2 + 4*μ[1,0]*μ[3,0] -12*μ[2,0]*μ[1,0]^2
+expr1 = get_closure(closed_eqs)[μ[4, 0]]
+expr2 = μ[1, 0] + 6 * μ[1, 0]^4 + 3 * μ[2, 0]^2 + 4 * μ[1, 0] * μ[3, 0] - 12 * μ[2, 0] * μ[1, 0]^2
 @test isequal(expr1, expr2)
 
 closed_eqs = moment_closure(sys, "gamma")
-expr1 = get_closure(closed_eqs)[μ[0,3]]
-expr2 = μ[0,1]^3 + 3*μ[0,1]*(μ[0,2]-μ[0,1]^2) + 2*μ[0,1]^-1*(μ[0,2]-μ[0,1]^2)^2
+expr1 = get_closure(closed_eqs)[μ[0, 3]]
+expr2 = μ[0, 1]^3 + 3 * μ[0, 1] * (μ[0, 2] - μ[0, 1]^2) + 2 * μ[0, 1]^-1 * (μ[0, 2] - μ[0, 1]^2)^2
 @test isequal(simplify(expr1), simplify(expr2))
 
 closed_eqs = moment_closure(sys, "derivative matching")
-expr1 = get_closure(closed_eqs)[sys.μ[0,3]]
-expr2 = μ[0,1]^-3*μ[0,2]^3
+expr1 = get_closure(closed_eqs)[sys.μ[0, 3]]
+expr2 = μ[0, 1]^-3 * μ[0, 2]^3
 @test isequal(expr1, expr2)
