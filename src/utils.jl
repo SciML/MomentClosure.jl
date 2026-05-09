@@ -35,7 +35,7 @@ function get_raw_moments(sol::EnsembleSolution, order::Int; naive::Bool = true, 
         f_alg = moment
     end
 
-    no_t_pts = length(sol.u[1])
+    no_t_pts = length(sol.u[1].u)
     N = length(sol.u[1].u[1])
 
     iter_all = construct_iter_all(N, order)
@@ -80,7 +80,7 @@ function get_central_moments(sol::EnsembleSolution, order::Int; naive::Bool = tr
         f_alg = moment
     end
 
-    no_t_pts = length(sol.u[1])
+    no_t_pts = length(sol.u[1].u)
     N = length(sol.u[1].u[1])
 
     iter_all = construct_iter_all(N, order)
@@ -123,7 +123,7 @@ at each time step. See the notes of [`get_raw_moments`](@ref) function for more 
 """
 function get_cumulants(sol::EnsembleSolution, order::Int; naive::Bool = true, b::Int = 2)
 
-    no_t_pts = length(sol.u[1])
+    no_t_pts = length(sol.u[1].u)
     N = length(sol.u[1].u[1])
 
     iter_all = construct_iter_all(N, order)
@@ -205,7 +205,7 @@ function get_moments_FSP(sol::ODESolution, order::Int, moment_type::String)
 
     if moment_type == "raw"
         for t_pt in 1:no_t_pts
-            tslice = sol[t_pt]
+            tslice = sol.u[t_pt]
             for μ_ind in iter_moments
                 moments[μ_ind][t_pt] = sum(prod(n_state .^ μ_ind) * tslice[(n_state .+ 1)...] for n_state in iter_state)
             end
@@ -215,7 +215,7 @@ function get_moments_FSP(sol::ODESolution, order::Int, moment_type::String)
         μ[Tuple(zeros(N))] = 1.0
 
         for t_pt in 1:no_t_pts
-            tslice = sol[t_pt]
+            tslice = sol.u[t_pt]
             for μ_ind in iter_moments
                 μ[μ_ind] = sum(prod(n_state .^ μ_ind) * tslice[(n_state .+ 1)...] for n_state in iter_state)
             end
