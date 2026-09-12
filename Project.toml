@@ -39,7 +39,7 @@ SafeTestsets = "0.1"
 SciMLBase = "3.21"
 SciMLTesting = "2.4"
 SymbolicIndexingInterface = "0.3"
-SymbolicUtils = "4.35"
+SymbolicUtils = "4.46.5"
 Symbolics = "7.39.2"
 StatsBase = "0.34"
 Test = "1"
@@ -56,7 +56,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["Test", "SafeTestsets", "SciMLTesting", "JumpProcesses", "ModelingToolkit", "OrdinaryDiffEqTsit5"]
-
-[sources]
-SymbolicUtils = {url = "https://github.com/ChrisRackauckas-Claude/SymbolicUtils.jl.git", rev = "fix-int64-poly-gcd"}
 
