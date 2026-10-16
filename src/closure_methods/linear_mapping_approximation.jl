@@ -85,7 +85,7 @@ function linear_mapping_approximation(
     ps = parameters(rn_nonlinear)
     vars = unknowns(sys)
     odename = Symbol(nameof(sys), "_LMA")
-    odes = ODESystem(LMA_eqs, iv, vars, ps; name = odename)
+    odes = System(LMA_eqs, iv, vars, ps; name = odename)
     new_system = typeof(sys)(odes, field_values[2:end]...)
 
     return new_system, sub_params

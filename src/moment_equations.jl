@@ -10,9 +10,9 @@ helper parameters (used internally).
 $(FIELDS)
 """
 struct RawMomentEquations <: MomentEquations
-    """[`ModelingToolkit.ODESystem`](https://docs.sciml.ai/ModelingToolkit/stable/systems/ODESystem/#ModelingToolkit.ODESystem)
+    """[`ModelingToolkit.System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/#ModelingToolkitBase.System)
     consisting of the time-evolution equations of raw moments."""
-    odes::ODESystem
+    odes::System
     """Dictionary mapping species of the associated `ReactionSystem` to their index in the moment equations."""
     smap::Dict
     """Symbolic variables defining the raw moments."""
@@ -44,9 +44,9 @@ helper parameters (used internally).
 $(FIELDS)
 """
 struct CentralMomentEquations <: MomentEquations
-    """[`ModelingToolkit.ODESystem`](https://docs.sciml.ai/ModelingToolkit/stable/systems/ODESystem/#ModelingToolkit.ODESystem)
+    """[`ModelingToolkit.System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/#ModelingToolkitBase.System)
     consisting of the time-evolution equations of central moments."""
-    odes::ODESystem
+    odes::System
     """Dictionary mapping species of the associated `ReactionSystem` to their index in the moment equations."""
     smap::Dict
     """Symbolic variables defining the means."""
@@ -79,9 +79,9 @@ Closed moment equations and the corresponding closure functions.
 $(FIELDS)
 """
 struct ClosedMomentEquations <: MomentEquations
-    """[`ModelingToolkit.ODESystem`](https://docs.sciml.ai/ModelingToolkit/stable/systems/ODESystem/#ModelingToolkit.ODESystem)
+    """[`ModelingToolkit.System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/#ModelingToolkitBase.System)
     consisting of the time-evolution equations of *closed* moments."""
-    odes::ODESystem
+    odes::System
     """Dictionary of moment closure functions for each higher order moment."""
     closure::OrderedDict
     """Original raw or central moment equations (before closure was applied)."""
@@ -119,7 +119,7 @@ end
 """
     get_odes(sys::MomentEquations)
 
-Return the `ModelingToolkit.ODESystem` of moment equations.
+Return the `ModelingToolkit.System` of moment equations.
 """
 get_odes(sys::MomentEquations) = getfield(sys, :odes)
 

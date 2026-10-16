@@ -94,7 +94,7 @@ function generate_raw_moment_eqs(
 
     vars = extract_variables(eqs, μ)
     odename = Symbol(nameof(rn), "_raw_moment_eqs_m", m_order)
-    odes = ODESystem(eqs, iv, vars, get_ps(rn); name = odename)
+    odes = System(eqs, iv, vars, get_ps(rn); name = odename)
 
     return RawMomentEquations(
         odes,

@@ -181,7 +181,7 @@ function generate_central_moment_eqs(
 
     vars = extract_variables(eqs, μ, M)
     odename = Symbol(nameof(rn), "_central_moment_eqs_m", m_order, "_q", q_order)
-    odes = ODESystem(eqs, iv, vars, get_ps(rn); name = odename)
+    odes = System(eqs, iv, vars, get_ps(rn); name = odename)
 
     return CentralMomentEquations(
         odes,

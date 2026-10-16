@@ -42,14 +42,14 @@ ODEProblem(::MomentEquations, ::Tuple, ::Tuple, ::Tuple)
 
 ## Basic Accessor Functions
 
-We also define a few accessor functions that return system information from the given `MomentEquations` (most are borrowed from [ModelingToolkit](https://docs.sciml.ai/ModelingToolkit/stable/systems/ODESystem/#Composition-and-Accessor-Functions)):
+We also define a few accessor functions that return system information from the given `MomentEquations` (most are borrowed from [ModelingToolkit](https://docs.sciml.ai/ModelingToolkit/stable/API/System_accessors/)):
 
 ```@docs
 get_odes
 get_closure
 ```
 
-* `MomentClosure.get_odes(sys::MomentEquations)`: The [`ODESystem`](https://mtk.sciml.ai/stable/systems/ODESystem/) of moment equations.
+* `MomentClosure.get_odes(sys::MomentEquations)`: The [`System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/) of moment equations.
 * `MomentClosure.get_closure(sys::ClosedMomentEquations)`: The dictionary of moment closure functions for each higher order moment.
 
 Moment equation systems also implement the standard `ModelingToolkitBase.get_eqs`,
@@ -63,7 +63,7 @@ The generated moment equations can be converted into LaTeX expressions using [La
 using Latexify
 latexify(moment_eqs)
 ```
-A [`ModelingToolkit.ODESystem`](https://mtk.sciml.ai/stable/systems/ODESystem/) of the moment equations (accessed by `get_odes(moment_eqs)`) can also be passed to `latexify` function directly but the output will be different as we apply additional formatting to the symbolic expressions.
+A [`ModelingToolkit.System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/) of the moment equations (accessed by `get_odes(moment_eqs)`) can also be passed to `latexify` function directly but the output will be different as we apply additional formatting to the symbolic expressions.
 
 Given [`ClosedMomentEquations`](@ref), the closure functions can be visualised in the same way by adding a `:closure` argument:
 ```julia

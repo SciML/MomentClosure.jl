@@ -55,7 +55,7 @@ function generate_raw_moment_eqs(
     end
 
     odename = Symbol(name, "_raw_moment_eqs_m", m_order)
-    odes = ODESystem(eqs, iv, extract_variables(eqs, μ), ps; name = odename)
+    odes = System(eqs, iv, extract_variables(eqs, μ), ps; name = odename)
 
     return RawMomentEquations(odes, smap, μ, N, m_order, q_order, iter_all, iter_m, iter_q, iter_1)
 end
@@ -103,7 +103,7 @@ function generate_raw_moment_eqs(drift_eqs::AbstractVector{Equation}, diff::Abst
     end
 
     odename = Symbol(name, "_raw_moment_eqs_m", m_order)
-    odes = ODESystem(mom_eqs, iv, moms, ps; name=odename)
+    odes = System(mom_eqs, iv, moms, ps; name=odename)
 
     RawMomentEquations(odes, μ, N, m_order, q_order, iter_all, iter_m, iter_q, iter_1)
 end

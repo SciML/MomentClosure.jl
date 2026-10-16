@@ -117,7 +117,7 @@ function bernoulli_moment_eqs(sys::MomentEquations, binary_vars::Array{Int, 1})
     end
 
     odename = Symbol(nameof(sys), "_bernoulli")
-    odes = ODESystem(clean_eqs, iv, vars, ps; name = odename)
+    odes = System(clean_eqs, iv, vars, ps; name = odename)
 
     new_system = typeof(sys)(odes, field_values[2:end]...)
 

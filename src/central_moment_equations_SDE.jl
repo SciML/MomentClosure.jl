@@ -96,7 +96,7 @@ function generate_central_moment_eqs(
     end
 
     odename = Symbol(name, "_central_moment_eqs_m", m_order, "_q", q_order)
-    odes = ODESystem(eqs, iv, extract_variables(eqs, μ, M), ps; name = odename)
+    odes = System(eqs, iv, extract_variables(eqs, μ, M), ps; name = odename)
 
     return CentralMomentEquations(odes, smap, μ, M, N, m_order, q_order, iter_all, iter_m, iter_q, iter_1)
 end
@@ -173,7 +173,7 @@ function generate_central_moment_eqs(drift_eqs::AbstractVector{Equation}, diff::
         push!(mom_eqs, Differential(iv)(M[iter]) ~ - offset + poly_subs(poly, mono_to_moment, Set(ps), true))
     end
 
-    return CentralMomentEquations(ODESystem(mom_eqs, iv, moms, ps, name = Symbol(name, :_RAW_CENTRAL)), μ, M, N, m_order, q_order, iter_all, iter_m, iter_q, iter_1)
+    return CentralMomentEquations(System(mom_eqs, iv, moms, ps, name = Symbol(name, :_RAW_CENTRAL)), μ, M, N, m_order, q_order, iter_all, iter_m, iter_q, iter_1)
 end
 
 generate_central_moment_eqs(sys::SDESystem, m_order::Int, q_order::Int=0) = generate_central_moment_eqs(equations(sys), get_noiseeqs(sys), m_order, q_order, 

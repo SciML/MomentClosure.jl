@@ -5,7 +5,7 @@ using Distributions: Geometric
 using Catalyst
 using Test
 using ModelingToolkit: t_nounits as t, D_nounits as D
-using ModelingToolkitBase: get_eqs, get_iv, get_ps, unknowns
+using ModelingToolkitBase: System, get_eqs, get_iv, get_ps, unknowns
 
 # --- check that expected values of stoichiometric coefficients are computed correctly ---
 
@@ -60,7 +60,7 @@ expr2 = simplify(value.(expr2))
 
 # test getters
 @test isequal(speciesmap(rn), speciesmap(sys))
-@test get_odes(sys) isa ODESystem
+@test get_odes(sys) isa System
 @test isequal(get_iv(sys), t)
 @test get_eqs(sys) isa Vector{Equation}
 @test unknowns(sys) isa Vector{<:Symbolics.BasicSymbolic}

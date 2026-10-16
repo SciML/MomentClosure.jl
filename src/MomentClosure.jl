@@ -2,7 +2,7 @@ module MomentClosure
 
 import ModelingToolkitBase
 using PrecompileTools: @compile_workload, @setup_workload
-using ModelingToolkitBase: ODESystem, System, complete, equations, get_eqs, get_iv,
+using ModelingToolkitBase: System, complete, equations, get_eqs, get_iv,
     get_noise_eqs, get_ps, parameters, unknowns
 using SymbolicIndexingInterface: getname
 import Catalyst

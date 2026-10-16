@@ -40,7 +40,7 @@ Let's start with the raw moment equations which we choose to generate up to seco
 using MomentClosure
 raw_eqs = generate_raw_moment_eqs(rn, 2, combinatoric_ratelaws=false)
 ```
-Note that we have set `combinatoric_ratelaws=false` in order to ignore the factorial scaling factors which [Catalyst adds to mass-action reactions](https://docs.sciml.ai/Catalyst/stable/introduction_to_catalyst/introduction_to_catalyst/#introduction_to_catalyst_ratelaws). The function [`generate_raw_moment_eqs`](@ref) returns an instance of [`RawMomentEquations`](@ref MomentClosure.RawMomentEquations) that contains a [`ModelingToolkit.ODESystem`](https://mtk.sciml.ai/stable/systems/ODESystem/) composed of all the moment equations (accessed by `raw_eqs.odes`).
+Note that we have set `combinatoric_ratelaws=false` in order to ignore the factorial scaling factors which [Catalyst adds to mass-action reactions](https://docs.sciml.ai/Catalyst/stable/introduction_to_catalyst/introduction_to_catalyst/#introduction_to_catalyst_ratelaws). The function [`generate_raw_moment_eqs`](@ref) returns an instance of [`RawMomentEquations`](@ref MomentClosure.RawMomentEquations) that contains a [`ModelingToolkit.System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/) composed of all the moment equations (accessed by `raw_eqs.odes`).
 
 We can use [Latexify](https://github.com/korsbo/Latexify.jl) to look at the generated moment equations:
 ```julia
@@ -104,7 +104,7 @@ Let's apply [normal closure](@ref normal_closure) to the raw moment equations `r
 ```julia
 closed_raw_eqs = moment_closure(raw_eqs, "normal")
 ```
-The function returns [`ClosedMomentEquations`](@ref MomentClosure.ClosedMomentEquations) that consists of both the [`ModelingToolkit.ODESystem`](https://mtk.sciml.ai/stable/systems/ODESystem/) containing all closed moment equations as well as the specific closure functions for each higher order raw moments. We can use Latexify again to look at the closed ODEs:
+The function returns [`ClosedMomentEquations`](@ref MomentClosure.ClosedMomentEquations) that consists of both the [`ModelingToolkit.System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/) containing all closed moment equations as well as the specific closure functions for each higher order raw moments. We can use Latexify again to look at the closed ODEs:
 ```julia
 latexify(closed_raw_eqs)
 ```
@@ -150,7 +150,7 @@ Higher order central moments under normal closure take a rather simple form comp
 
 ## Solving Moment Equations
 
-The closed moment equations can be solved numerically using [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl/) that provides a variety of highly-efficient solvers and analysis tools. In order to do so, first we need to specify the values of all system parameters, the initial condition and the timespan to solve over. Then the [`ModelingToolkit.ODESystem`](https://mtk.sciml.ai/stable/systems/ODESystem/) corresponding to the moment equations can be [directly converted](https://mtk.sciml.ai/stable/#Compatible-Numerical-Solvers-1) into an [`ODEProblem`](@ref) that can finally be solved. Let's go through the procedure step-by-step for the closed raw moment equations (`closed_raw_eqs`). Most of what is covered below is based on [on Catalyst's introductory tutorial](https://docs.sciml.ai/Catalyst/stable/introduction_to_catalyst/introduction_to_catalyst/#Stochastic-simulation-algorithms-(SSAs)-for-stochastic-chemical-kinetics).
+The closed moment equations can be solved numerically using [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl/) that provides a variety of highly-efficient solvers and analysis tools. In order to do so, first we need to specify the values of all system parameters, the initial condition and the timespan to solve over. Then the [`ModelingToolkit.System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/) corresponding to the moment equations can be [directly converted](https://docs.sciml.ai/ModelingToolkit/stable/#Compatible-Numerical-Solvers-1) into an [`ODEProblem`](@ref) that can finally be solved. Let's go through the procedure step-by-step for the closed raw moment equations (`closed_raw_eqs`). Most of what is covered below is based on [on Catalyst's introductory tutorial](https://docs.sciml.ai/Catalyst/stable/introduction_to_catalyst/introduction_to_catalyst/#Stochastic-simulation-algorithms-(SSAs)-for-stochastic-chemical-kinetics).
 
 We start with the parameters. Note that the internal parameter ordering [can vary](https://docs.sciml.ai/ModelingToolkit/stable/basics/FAQ/#Why-are-my-parameters-some-obscure-object?), and we need to build a mapping from the symbolic parameters to their respective numerical values. This can be done as:
 ```julia

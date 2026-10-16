@@ -21,7 +21,7 @@ function close_eqs(
     vars = unknowns(sys)[1:(length(sys.iter_1) + length(sys.iter_m))]
 
     odename = Symbol(nameof(sys), "_closed")
-    odes = ODESystem(closed_eqs, iv, vars, ps; name = odename)
+    odes = System(closed_eqs, iv, vars, ps; name = odename)
 
     return ClosedMomentEquations(odes, closure, sys)
 

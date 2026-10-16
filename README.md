@@ -6,8 +6,8 @@
 
 MomentClosure.jl is a tool to automatically obtain time-evolution equations of moments up to an arbitrary order for virtually any chemical reaction network or system of stochastic differential equations (SDEs), implementing a wide array of moment closure approximations commonly used in stochastic biochemical kinetics [[1]](#1). MomentClosure is (attempted to be) fairly well-integrated within the broader Julia ecosystem utilising a number of familiar packages:
 - MomentClosure can be immediately applied to reaction network models defined using [Catalyst](https://github.com/SciML/Catalyst.jl) and SDE systems built with [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl).
-- Moment equations are generated as a [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl) [`ODESystem`](https://mtk.sciml.ai/stable/systems/ODESystem/) (with some extra help from [Symbolics](https://github.com/JuliaSymbolics/Symbolics.jl) and [SymbolicUtils](https://github.com/JuliaSymbolics/SymbolicUtils.jl)).
-- The resulting `ODESystem` can be solved using any [DifferentialEquations](https://github.com/SciML/DifferentialEquations.jl/) ODE solvers, enabling further study of the system using [parameter estimation](https://docs.sciml.ai/Overview/stable/highlevels/inverse_problems/), [sensitivity analysis](https://docs.sciml.ai/SciMLSensitivity/stable/) and [bifurcation analysis](https://docs.sciml.ai/Overview/stable/highlevels/parameter_analysis/#BifurcationKit.jl) tools.
+- Moment equations are generated as a [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl) [`System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/) (with some extra help from [Symbolics](https://github.com/JuliaSymbolics/Symbolics.jl) and [SymbolicUtils](https://github.com/JuliaSymbolics/SymbolicUtils.jl)).
+- The resulting `System` can be solved using any [DifferentialEquations](https://github.com/SciML/DifferentialEquations.jl/) ODE solvers, enabling further study of the system using [parameter estimation](https://docs.sciml.ai/Overview/stable/highlevels/inverse_problems/), [sensitivity analysis](https://docs.sciml.ai/SciMLSensitivity/stable/) and [bifurcation analysis](https://docs.sciml.ai/Overview/stable/highlevels/parameter_analysis/#BifurcationKit.jl) tools.
 
 ## Tutorials and documentation
 
@@ -28,7 +28,7 @@ Please [see the documentation](https://sciml.github.io/MomentClosure.jl/dev/) fo
 	- conditional gaussian closure [[7]](#7)
 	- conditional derivative matching [[7]](#7)
 	- linear mapping approximation [[8]](#8)
-- Moment equations are constructed as a [`ModelingToolkit.ODESystem`](https://mtk.sciml.ai/stable/systems/ODESystem/) that can be solved using any [DifferentialEquations](https://github.com/SciML/DifferentialEquations.jl/) ODE solver. Moreover, [parameter estimation](https://docs.sciml.ai/Overview/stable/highlevels/inverse_problems/), [sensitivity analysis](https://docs.sciml.ai/SciMLSensitivity/stable/) and [bifurcation analysis](https://docs.sciml.ai/Overview/stable/highlevels/parameter_analysis/#BifurcationKit.jl) tools can be applied to further study the resulting system of equations.
+- Moment equations are constructed as a [`ModelingToolkit.System`](https://docs.sciml.ai/ModelingToolkit/stable/API/System/) that can be solved using any [DifferentialEquations](https://github.com/SciML/DifferentialEquations.jl/) ODE solver. Moreover, [parameter estimation](https://docs.sciml.ai/Overview/stable/highlevels/inverse_problems/), [sensitivity analysis](https://docs.sciml.ai/SciMLSensitivity/stable/) and [bifurcation analysis](https://docs.sciml.ai/Overview/stable/highlevels/parameter_analysis/#BifurcationKit.jl) tools can be applied to further study the resulting system of equations.
 - [Latexify](https://github.com/korsbo/Latexify.jl) can be used to generate LaTeX expressions of the corresponding moment equations.
 
 ## Citation
