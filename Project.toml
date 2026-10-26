@@ -22,7 +22,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TermInterface = "8ea1fca8-c5ef-4a55-8b96-4e9afe9c9a3c"
 
 [compat]
-Catalyst = "16.2"
+Catalyst = "16.2, 17"
 Combinatorics = "1.0.2"
 Cumulants = "1.0.6"
 DataStructures = "0.19.5"
