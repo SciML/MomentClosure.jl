@@ -1,7 +1,7 @@
 name = "MomentClosure"
 uuid = "01a1b25a-ecf0-48c5-ae58-55bfd5393600"
 authors = ["Augustinas Sukys"]
-version = "0.4.8"
+version = "0.4.9"
 
 [deps]
 Catalyst = "479239e8-5488-4da2-87a7-35f2df7eef83"
@@ -22,7 +22,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TermInterface = "8ea1fca8-c5ef-4a55-8b96-4e9afe9c9a3c"
 
 [compat]
-Catalyst = "16.2"
+Catalyst = "16.2, 17"
 Combinatorics = "1.0.2"
 Cumulants = "1.0.6"
 DataStructures = "0.19.5"
