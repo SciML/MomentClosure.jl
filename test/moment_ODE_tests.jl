@@ -33,7 +33,7 @@ smap_shifted = Dict(s => mod1(i + 1, numspecies(rn)) for (s, i) in smap_default)
 @test !isequal(smap_shifted, smap_default)
 
 @testset "species ordering: $label" for (label, smap) in
-        [("default", smap_default), ("shifted", smap_shifted)]
+    [("default", smap_default), ("shifted", smap_shifted)]
     eqs = generate_central_moment_eqs(rn, 2, 3; combinatoric_ratelaws = false, smap)
     closed_eqs = moment_closure(eqs, "normal")
     @test isequal(speciesmap(closed_eqs), smap)
