@@ -102,13 +102,38 @@ Note that the initial condition `u0` can be defined as follows:
   initial conditions (using the function [`deterministic_IC`](@ref)). This is the default use case.
 - To handle a more complicated initial condition, `u0` can be defined with the initial values of each moment directly,
   but `use_deterministic_IC` must be set to `false` to ensure correctness.
+- If `u0` is a plain vector, its elements are read in the order of the species in
+  [`Catalyst.speciesmap`](https://docs.sciml.ai/Catalyst/stable/api/core_api/#Catalyst.speciesmap)`(sys)`
+  (or of the moments in `unknowns(sys)` if `use_deterministic_IC = false`).
 """
 function SciMLBase.ODEProblem(
         sys::MomentEquations, u0, tspan, p = NullParameters();
         use_deterministic_IC::Bool = true, kwargs...
     )
+    odes = complete(get_odes(sys))
     u0map = use_deterministic_IC ? deterministic_IC(u0, sys) : u0
-    return ODEProblem(complete(get_odes(sys)), u0map, tspan, p; kwargs...)
+    op = merge(_u0_opmap(u0map, unknowns(odes)), _p_opmap(p))
+    return ODEProblem(odes, op, tspan; kwargs...)
+end
+
+# Convert `u0` and `p` to a single map
+# Plain `u0` vector follows the ordering set by MomentClosure
+_u0_opmap(x::AbstractDict, _) = x
+_u0_opmap(x::Union{Tuple, AbstractArray{<:Pair}}, _) = Dict(x)
+_u0_opmap(x::AbstractArray, syms) = isempty(x) ? Dict() : Dict(syms .=> x)
+
+# Plain `p` vector is rejected (ordering is internal to ModelingToolkit)
+_p_opmap(::Union{Nothing, NullParameters}) = Dict()
+_p_opmap(x::AbstractDict) = x
+_p_opmap(x::Union{Tuple, AbstractArray{<:Pair}}) = Dict(x)
+function _p_opmap(x::AbstractArray)
+    isempty(x) && return Dict()
+    throw(
+        ArgumentError(
+            "parameters must be given as a map, e.g. `[k₁ => 1.0, …]` or a `Dict`; " *
+                "a plain vector is ambiguous because the parameter order is not guaranteed."
+        )
+    )
 end
 
 function Base.nameof(eqs::MomentEquations)
