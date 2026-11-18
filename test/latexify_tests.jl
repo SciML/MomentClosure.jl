@@ -5,7 +5,10 @@ using Catalyst
 using Distributions
 
 @parameters p
-@register_symbolic Distributions.Geometric(p)
+# register only once per process (other test files may have registered it already)
+if parentmodule(which(Distributions.Geometric, Tuple{Num})) === Distributions
+    @register_symbolic Distributions.Geometric(p)
+end
 m = rand(Distributions.Geometric(p)) # b - mean burst size => p = 1/(1+b)
 
 rn = @reaction_network begin

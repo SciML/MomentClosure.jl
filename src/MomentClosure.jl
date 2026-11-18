@@ -7,7 +7,7 @@ using ModelingToolkitBase: System, complete, equations, get_eqs, get_iv,
 using SymbolicIndexingInterface: getname
 import Catalyst
 using Catalyst: ReactionSystem, default_t, jumpratelaw, numreactions, numspecies, reactions,
-    species, speciesmap, substoichmat
+    speciesmap, substoichmat
 import SciMLBase
 using SciMLBase: EnsembleSolution, NullParameters, ODEProblem, ODESolution
 using SciMLBase.EnsembleAnalysis: componentwise_vectors_timestep

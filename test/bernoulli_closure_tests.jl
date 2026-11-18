@@ -18,7 +18,10 @@ function symeq(expr1, expr2; atol = 1.0e-10)
 end
 
 @parameters p
-@register_symbolic Distributions.Geometric(p)
+# register only once per process (other test files may have registered it already)
+if parentmodule(which(Distributions.Geometric, Tuple{Num})) === Distributions
+    @register_symbolic Distributions.Geometric(p)
+end
 m = rand(Distributions.Geometric(p))
 
 rn = @reaction_network begin

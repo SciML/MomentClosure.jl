@@ -1,7 +1,7 @@
 using MomentClosure
 using MomentClosure: expected_coeff, expand_div
 using Symbolics: value, simplify, expand
-using Distributions: Geometric
+import Distributions: Geometric
 using Catalyst
 using Test
 using ModelingToolkit: t_nounits as t, D_nounits as D
@@ -17,7 +17,10 @@ b = value(b); d = value(d); p = value(p)
 @test isequal(expected_coeff(b / d, 2), b^2 / d^2)
 @test isequal(expected_coeff(b + 1, 2), b^2 + 2b + 1)
 @test isequal(expected_coeff(sin(b), 2), sin(b)^2)
-@register_symbolic Geometric(p)
+# register only once per process (other test files may have registered it already)
+if parentmodule(which(Geometric, Tuple{Num})) === parentmodule(Geometric)
+    @register_symbolic Geometric(p)
+end
 m = rand(Geometric(p))
 @test isequal(expand_div(expected_coeff(m, 1)), p^-1 - 1)
 @test isequal(expand_div(expected_coeff(m, 3)), expand(-1 + 7 / p - 12 / p^2 + 6 / p^3))

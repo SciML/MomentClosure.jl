@@ -45,7 +45,7 @@ using OrdinaryDiffEq, Plots
 closed_raw_eqs = moment_closure(raw_eqs, "normal")
 
 # parameter values
-p = [:c₁ => 0.9, :c₂ => 2., :c₃ => 1., :c₄ => 1., :Ω => 5., :ω => 1., :τ => 40.]
+pmap = [:c₁ => 0.9, :c₂ => 2., :c₃ => 1., :c₄ => 1., :Ω => 5., :ω => 1., :τ => 40.]
 
 # initial molecule numbers of species [X, Y]
 u0map = [1., 1.]
