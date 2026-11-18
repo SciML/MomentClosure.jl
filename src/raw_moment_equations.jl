@@ -43,10 +43,11 @@ function generate_raw_moment_eqs(
     if langevin
         drift = S * a
         diff = Num[S[i, k] * a[k]^(1 // 2) for i in 1:N, k in eachindex(a)]
+        n = first.(sort(collect(smap), by = last)) # species in the order set by smap
 
         return generate_raw_moment_eqs(
-            Equation[Differential(iv)(s) ~ d for (s, d) in zip(species(rn), drift)],
-            diff, m_order, unknowns(rn), nameof(rn), parameters(rn), iv
+            Equation[Differential(iv)(s) ~ d for (s, d) in zip(n, drift)],
+            diff, m_order, n, nameof(rn), parameters(rn), iv
         )
 
     end

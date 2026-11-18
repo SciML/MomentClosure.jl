@@ -102,6 +102,30 @@ expr = expand(substitute(get_eqs(raw_eqs)[5].rhs - 2 * μ[0, 1] * get_eqs(raw_eq
 expr = expand(substitute(get_eqs(raw_eqs)[4].rhs - μ[1, 0] * get_eqs(raw_eqs)[2].rhs - μ[0, 1] * get_eqs(raw_eqs)[1].rhs, subdict))
 @test isequal(expr, get_eqs(central_eqs)[4].rhs)
 
+# a custom species ordering (smap) must give the same equations up to relabelling the moments
+smap_default = speciesmap(rn)
+smap_shifted = Dict(s => mod1(i + 1, numspecies(rn)) for (s, i) in smap_default)
+@test !isequal(smap_shifted, smap_default)
+perm = [smap_shifted[s] for (s, _) in sort(collect(smap_default), by = last)]
+shift(iter) = Tuple(iter[invperm(perm)[j]] for j in eachindex(iter))
+function moment_vars(eqs)
+    vars = Dict(k => Symbolics.value(v) for (k, v) in eqs.μ if sum(k) > 0)
+    eqs isa MomentClosure.CentralMomentEquations &&
+        merge!(vars, Dict(k => Symbolics.value(v) for (k, v) in eqs.M if sum(k) > 1))
+    return vars
+end
+diffvar(eq) = only(Symbolics.arguments(eq.lhs))
+for generate in (generate_raw_moment_eqs, generate_central_moment_eqs)
+    eqs = generate(rn, 2; langevin = true, combinatoric_ratelaws = false)
+    eqs_shifted = generate(rn, 2; langevin = true, combinatoric_ratelaws = false, smap = smap_shifted)
+    vars, vars_shifted = moment_vars(eqs), moment_vars(eqs_shifted)
+    relabel = Dict(vars_shifted[shift(k)] => v for (k, v) in vars)
+    rhs = Dict(diffvar(eq) => eq.rhs for eq in get_eqs(eqs))
+    @test all(get_eqs(eqs_shifted)) do eq
+        isequal(expand(substitute(eq.rhs, relabel)), expand(rhs[relabel[diffvar(eq)]]))
+    end
+end
+
 #=
 using OrdinaryDiffEq
 using ModelingToolkit: modelingtoolkitize

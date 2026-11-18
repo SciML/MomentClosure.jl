@@ -59,14 +59,17 @@ function generate_central_moment_eqs(
     iv = get_iv(rn)      # independent variable (usually time)
     a = propensities(rn; combinatoric_ratelaws) # propensity functions of all reactions in the network
     S = get_stoichiometry(rn, smap) # net stoichiometric matrix
+    # define the number of molecules of each species as a variable (required for the differentiation),
+    # ordered as in smap so that index i refers to the same species as in S and the moments
+    n = first.(sort(collect(smap), by = last))
 
     if langevin
         drift = S * a
         diff = Num[S[i, k] * a[k]^(1 // 2) for i in 1:N, k in eachindex(a)]
 
         return generate_central_moment_eqs(
-            Equation[Differential(iv)(s) ~ d for (s, d) in zip(species(rn), drift)],
-            diff, m_order, q_order, unknowns(rn), nameof(rn), parameters(rn), iv
+            Equation[Differential(iv)(s) ~ d for (s, d) in zip(n, drift)],
+            diff, m_order, q_order, n, nameof(rn), parameters(rn), iv
         )
 
     end
@@ -103,8 +106,6 @@ function generate_central_moment_eqs(
     For example, Da[2][(1, 2)] is equivalent to (∂³/∂n₁∂n₂²) a₂(μ) =#
 
     Da = []
-    # define the number of molecules of each species as a variable (required for the differentiation)
-    n = species(rn)
     dict_n_to_μ = Dict(zip(n, values(μ)))
 
     # save derivatives in a dictionary
